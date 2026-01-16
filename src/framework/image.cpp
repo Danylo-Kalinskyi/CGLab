@@ -397,3 +397,95 @@ void FloatImage::Resize(unsigned int width, unsigned int height)
 	this->height = height;
 	pixels = new_pixels;
 }
+
+void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c) {
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    
+    int d = std::max(abs(dx), abs(dy));
+
+    float xInc = dx / (float)d;
+    float yInc = dy / (float)d;
+
+    float x = x0;
+    float y = y0;
+
+    for (int i = 0; i <= d; i++) {
+        SetPixel(round(x), round(y), c);
+        x += xInc;
+        y += yInc;
+    }
+}
+
+void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,
+                     int borderWidth, bool isFilled, const Color& fillColor) {
+    for (int i = 0; i < borderWidth; i++) {
+        DrawLineDDA(x-i, y-i, x+w+i, y-i, borderColor);
+        DrawLineDDA(x-i, y-i, x-i, y+h+i, borderColor);
+        DrawLineDDA(x+w+i, y-i, x+w+i, y+h+i, borderColor);
+        DrawLineDDA(x-i, y+h+i, x+w+i, y+h+i, borderColor);
+    }
+    
+    if (isFilled) {
+        int x0 = x + 1;
+        int y0 = y + 1;
+        while (y0 < y + h) {
+            DrawLineDDA(x0, y0, x0 + w-1, y0, fillColor);
+            y0++;
+        }
+    }
+    
+    // + - functionality
+    
+}
+
+void Image::ScanLineDDA( int x0, int y0, int x1, int y1,
+                        std::vector<Cell> &table) {
+    float dx = x1 - x0;
+    float dy = y1 - y0;
+    
+    int d = std::max(abs(dx), abs(dy));
+
+    float xInc = dx / (float)d;
+    float yInc = dy / (float)d;
+
+    float x = x0;
+    float y = y0;
+    for (int i = 0; i < d; i++) {
+        if (x < table[y].minx) table[y].minx = x;
+        if (x > table[y].maxx) table[y].maxx = x;
+        x += xInc;
+        y += yInc;
+    }
+}
+
+void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor) {
+    
+    // Border
+    DrawLineDDA(p0.x, p0.y, p1.x, p1.y, borderColor);
+    DrawLineDDA(p0.x, p0.y, p2.x, p2.y, borderColor);
+    DrawLineDDA(p1.x, p1.y, p2.x, p2.y, borderColor);
+    
+    // Fill
+    if (isFilled) {
+        int ymin = std::min(std::min(p0.y, p1.y), p2.y);
+        int ymax = std::max(std::max(p0.y, p1.y), p2.y);
+        
+        std::vector<Cell> table;
+        table.resize(height);
+        
+        ScanLineDDA(p0.x, p0.y, p1.x, p1.y, table);
+        ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
+        ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
+        
+        for (int i = ymin + 1; i < ymax - 1; i++) {
+            for (int j = table[i].minx + 1; j <= table[i].maxx - 1; j++) {
+                SetPixel(j, i, fillColor);
+            }
+        }
+    }
+}
+
+void DrawImage(const Image& image, int x, int y) {
+    
+}

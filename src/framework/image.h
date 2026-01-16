@@ -92,6 +92,19 @@ public:
 		return *this;
 	}
 	#endif
+
+    struct Cell {
+        int minx = INT_MAX;
+        int maxx = INT_MIN;
+    };
+    
+	void DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c);
+    void ScanLineDDA( int x0, int y0, int x1, int y1, std::vector<Cell>& table);
+    void DrawRect(int x, int y, int w, int h, const Color& borderColor,
+                  int borderWidth, bool isFilled, const Color& fillColor);
+    void DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor);
+    void DrawImage(const Image& image, int x, int y);
+
 };
 
 // Image storing one float per pixel instead of a 3 or 4 component Color

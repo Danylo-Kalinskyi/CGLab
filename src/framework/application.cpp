@@ -1,7 +1,7 @@
 #include "application.h"
 #include "mesh.h"
 #include "shader.h"
-#include "utils.h" 
+#include "utils.h"
 
 Application::Application(const char* caption, int width, int height)
 {
@@ -32,7 +32,9 @@ void Application::Init(void)
 void Application::Render(void)
 {
 	// ...
-
+	framebuffer.DrawLineDDA(100, 100, 200, -100, Color(255, 0, 0));
+    framebuffer.DrawRect(100, 100, 100, 100, Color(255, 0, 0), 5, true, Color(0, 255, 0));
+    framebuffer.DrawTriangle({300, 300}, {500, 500}, {700, 100}, Color(0, 255, 0), true, Color(255, 0, 0));
 	framebuffer.Render();
 }
 
