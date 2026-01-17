@@ -8,6 +8,8 @@
 #include "framework.h"
 #include "image.h"
 
+#include "../../build/particle.h"
+
 class Application
 {
 public:
@@ -58,4 +60,8 @@ public:
 		SDL_GetWindowSize(window,&w,&h);
 		return Vector2(float(w), float(h));
 	}
+
+	// Lab 1 - 2.3
+	ParticleSystem particles;
+	bool animation_mode;
 };

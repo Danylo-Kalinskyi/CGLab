@@ -26,22 +26,30 @@ Application::~Application()
 void Application::Init(void)
 {
 	std::cout << "Initiating app..." << std::endl;
+	particles.Init(framebuffer.width, framebuffer.height);
 }
 
 // Render one frame
 void Application::Render(void)
 {
-	// ...
+	framebuffer.Fill(Color::BLACK);
+
 	framebuffer.DrawLineDDA(100, 100, 200, -100, Color(255, 0, 0));
     framebuffer.DrawRect(100, 100, 100, 100, Color(255, 0, 0), 5, true, Color(0, 255, 0));
     framebuffer.DrawTriangle({300, 300}, {500, 500}, {700, 100}, Color(0, 255, 0), true, Color(255, 0, 0));
+
+	// create and render particles
+	particles.Render(&framebuffer, framebuffer.width, framebuffer.height);
+
+	// finally draw framebuffer to screen
 	framebuffer.Render();
+
 }
 
 // Called after render
 void Application::Update(float seconds_elapsed)
 {
-
+	particles.Update(seconds_elapsed);
 }
 
 //keyboard press event 
