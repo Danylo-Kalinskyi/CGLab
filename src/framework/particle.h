@@ -1,6 +1,6 @@
 #pragma once
-#include <framework/image.h>
-#include <framework/framework.h>
+#include "framework.h"
+#include "image.h"
 
 class ParticleSystem {
 
@@ -13,12 +13,17 @@ class ParticleSystem {
         float acceleration;
         float ttl; // Time left until the particle expires
         bool inactive; // Particle is not used/expired, so it can be recreated
+        
     };
 
     Particle particles[MAX_PARTICLES];
 
+    // added attributes: window width and height
+    int width;
+    int height;
+
 public:
     void Init(int w, int h);
-    void Render(Image* framebuffer, int w, int h);
+    void Render(Image* framebuffer);
     void Update(float dt);
 };

@@ -39,7 +39,7 @@ void Application::Render(void)
     framebuffer.DrawTriangle({300, 300}, {500, 500}, {700, 100}, Color(0, 255, 0), true, Color(255, 0, 0));
 
 	// create and render particles
-	particles.Render(&framebuffer, framebuffer.width, framebuffer.height);
+	particles.Render(&framebuffer);
 
 	// finally draw framebuffer to screen
 	framebuffer.Render();
