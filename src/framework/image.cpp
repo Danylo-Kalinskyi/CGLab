@@ -381,7 +381,6 @@ FloatImage::~FloatImage()
 		delete[] pixels;
 }
 
-// Change image size (the old one will remain in the top-left corner)
 void FloatImage::Resize(unsigned int width, unsigned int height)
 {
 	float* new_pixels = new float[width * height];
@@ -420,23 +419,16 @@ void Image::DrawLineDDA(int x0, int y0, int x1, int y1, const Color& c) {
 void Image::DrawRect(int x, int y, int w, int h, const Color& borderColor,
                      int borderWidth, bool isFilled, const Color& fillColor) {
     for (int i = 0; i < borderWidth; i++) {
-        DrawLineDDA(x-i, y-i, x+w+i, y-i, borderColor);
-        DrawLineDDA(x-i, y-i, x-i, y+h+i, borderColor);
-        DrawLineDDA(x+w+i, y-i, x+w+i, y+h+i, borderColor);
-        DrawLineDDA(x-i, y+h+i, x+w+i, y+h+i, borderColor);
+        DrawLineDDA(x, y + i, x + w - 1, y + i, borderColor);
+        DrawLineDDA(x, y + h - 1 - i, x + w - 1, y + h - 1 - i, borderColor);
+        DrawLineDDA(x + i, y, x + i, y + h - 1, borderColor);
+        DrawLineDDA(x + w - 1 - i, y, x + w - 1 - i, y + h - 1, borderColor);
     }
-    
     if (isFilled) {
-        int x0 = x + 1;
-        int y0 = y + 1;
-        while (y0 < y + h) {
-            DrawLineDDA(x0, y0, x0 + w-1, y0, fillColor);
-            y0++;
+        for (int row = y + borderWidth; row < y + h - borderWidth; row++) {
+            DrawLineDDA(x + borderWidth, row, x + w - 1 - borderWidth, row, fillColor);
         }
     }
-    
-    // + - functionality
-    
 }
 
 void Image::ScanLineDDA( int x0, int y0, int x1, int y1,
@@ -486,6 +478,21 @@ void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2
     }
 }
 
-void DrawImage(const Image& image, int x, int y) {
+void Image::DrawImage(const Image& image, int x, int y)
+{
+	const int end_x = std::min(width, x + image.width);
+	const int end_y = std::min(height, y + image.height);
     
+	if (x >= end_x || y >= end_y)
+		return;
+
+	for (int dy = y; dy < end_y; ++dy)
+	{
+		const int sy = dy - y;
+		for (int dx = x; dx < end_x; ++dx)
+		{
+			const int sx = dx - x;
+			SetPixelUnsafe((unsigned int)dx, (unsigned int)dy, image.GetPixel((unsigned int)sx, (unsigned int)sy));
+		}
+	}
 }
