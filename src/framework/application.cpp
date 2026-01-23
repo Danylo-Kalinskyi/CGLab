@@ -148,7 +148,6 @@ void Application::OnMouseButtonDown(SDL_MouseButtonEvent event)
                 else if (type == Button::LOADIMAGE) {
                     canvas.LoadTGA("images/saved_drawing.tga", true);
                 }
-                
                 else if (type <= Button::RECTANGLE) {
                     drawingTool = type;
                 }

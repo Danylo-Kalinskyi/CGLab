@@ -7,8 +7,7 @@
 #include "framework.h"
 #include "image.h"
 #include "button.h"
-
-#include "../../build/particle.h"
+#include "particle.h"
 
 class Application
 {
