@@ -8,6 +8,7 @@
 #include "image.h"
 #include "button.h"
 #include "particle.h"
+#include "entity.h"
 
 class Application
 {
@@ -96,4 +97,7 @@ public:
     Image yellowImage;
     
     std::vector<Button> buttons;
+
+    Entity entity;
+    Camera camera;
 };

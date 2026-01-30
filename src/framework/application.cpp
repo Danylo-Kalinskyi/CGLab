@@ -94,6 +94,30 @@ void Application::Init(void)
     drawingTool = Button::PENCIL;
     borderColor = Color::WHITE;
     fillColor = Color::WHITE;
+
+    // Initiate mesh and entity
+    Mesh* mesh = new Mesh();
+    mesh->LoadOBJ("meshes/lee.obj");
+
+    entity.mesh = mesh;
+    entity.model.SetIdentity();
+
+    // Optional: scale / translate so it fits the screen
+    Matrix44 scale;
+    scale.SetIdentity();
+    scale.M[0][0] = scale.M[1][1] = scale.M[2][2] = 0.01f;
+
+    Matrix44 translate;
+    translate.SetIdentity();
+    translate.M[3][2] = -3.0f; // move away from camera
+
+    entity.model = scale * translate;
+
+    // Position the camera so the mesh is visible
+    camera.SetPerspective(60.0f, window_width / (float)window_height, 0.1f, 100.0f);
+    camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
+
+
 }
 
 void Application::Render(void)
@@ -111,12 +135,17 @@ void Application::Render(void)
         button.Render(framebuffer);
     }
     framebuffer.DrawRect(window_width - 40, 10, 30, 30, Color::WHITE, 0, true, fill ? fillColor : borderColor);
+
+    entity.Render(&framebuffer, &camera, Color::WHITE);
+
     framebuffer.Render();
+
 }
 
 void Application::Update(float seconds_elapsed)
 {
     particles.Update(seconds_elapsed);
+    entity.Update(seconds_elapsed);
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event)
