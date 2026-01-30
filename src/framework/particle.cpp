@@ -26,7 +26,7 @@ void ParticleSystem::Render(Image* framebuffer)
 			continue; // we skip inactive particles
 		}
 		// we convert position to integers
-		int x = (int)particles[i].position.x; 
+		int x = (int)particles[i].position.x;
 		int y = (int)particles[i].position.y;
 		// we prevent writing outside the window
 		if (x < 0) { x = 0; }
