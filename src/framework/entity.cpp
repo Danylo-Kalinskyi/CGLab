@@ -7,6 +7,16 @@ Entity::Entity() {
     model.SetIdentity();
 }
 
+void Entity::Init(Mesh* m) {
+    mesh = m;
+    color = Color(56 + rand() % 200, 56 + rand() % 200, 56 + rand() % 200); // We avoid dark colors for visibility
+    // Random position inside [-2, 2] for x, y and z
+    position.x = ((float)rand() / RAND_MAX) * 4 - 2;
+    position.y = ((float)rand() / RAND_MAX) * 4 - 2;
+    position.z = ((float)rand() / RAND_MAX) * 4 - 2;
+    RandomAnim();
+}
+
 void Entity::Update(float dt) {
     if (animType == ROTATE) {
         rotation.x += animAxis.x * animSpeed * dt;
@@ -14,9 +24,9 @@ void Entity::Update(float dt) {
         rotation.z += animAxis.z * animSpeed * dt;
     }
     else if (animType == SCALE) {
-        scale.x += scale.x * dt;
-        scale.y += scale.y * dt;
-        scale.z += scale.z * dt;
+        scale.x += animSpeed * dt;
+        scale.y += animSpeed * dt;
+        scale.z += animSpeed * dt;
     }
     else if (animType == TRANSLATE) {
         position.x += translation.x * dt;
@@ -25,7 +35,7 @@ void Entity::Update(float dt) {
     }
     Matrix44 T, R, S;
     T.MakeTranslationMatrix(position.x, position.y, position.z);
-    R.MakeRotationMatrix(rotation.y, Vector3(0, 1, 0));
+    R.MakeRotationMatrix(rotation.x + rotation.y + rotation.z, animAxis);
     S.MakeScaleMatrix(scale.x, scale.y, scale.z);
     model = T * R * S;
 }
@@ -111,3 +121,4 @@ void Entity::RandomAnim() {
         translation = animAxis * (0.5 + ((float)rand() / RAND_MAX));
     }
 }
+

@@ -27,17 +27,6 @@ public:
     Vector2 mouse_position; // Last mouse position
     Vector2 mouse_delta;
 
-    // Drawing State
-    Button::ButtonType drawingTool = Button::PENCIL;
-    Color borderColor = Color::WHITE;
-    Color fillColor = Color::WHITE;
-	bool fill = false;
-    int borderWidth = 2;
-    
-    bool is_drawing = false;
-    Vector2 draw_start_pos;   // Starting position for line/rectangle tools
-    Vector2 draw_prev_pos;    // Previous position for pencil/eraser tools
-
     // Event Handlers
     void OnKeyPressed(SDL_KeyboardEvent event);
     void OnMouseButtonDown(SDL_MouseButtonEvent event);
@@ -48,7 +37,6 @@ public:
 
     // Images and Buffers
     Image framebuffer;
-    Image canvas;
 
     // Constructor and main methods
     Application(const char* caption, int width, int height);
@@ -66,39 +54,25 @@ public:
         this->framebuffer.Resize(width, height);
     }
 
-    Vector2 GetWindowSize()
-    {
+    Vector2 GetWindowSize() {
         int w,h;
         SDL_GetWindowSize(window,&w,&h);
         return Vector2(float(w), float(h));
     }
 
-    ParticleSystem particles;
-    bool animation_mode = false;
-    
-    // Images
-    Image circleImage;
-    Image eraserImage;
-    Image lineImage;
-    Image pencilImage;
-    Image rectangleImage;
-    Image triangleImage;
-    Image loadImage;
-    Image saveImage;
-    Image clearImage;
-
-    // Colors
-    Image blackImage;
-    Image cyanImage;
-    Image greenImage;
-    Image pinkImage;
-    Image redImage;
-    Image whiteImage;
-    Image yellowImage;
-    
-    std::vector<Button> buttons;
-
-    // LAB 2
+    // LAB 2 - objects (entities) 
     std::vector<Entity> entities;
+    Mesh* mesh = nullptr;
+    bool one_entity = false; // Initially, we draw 3 entities
+
+    // LAB 2 - camera control
     Camera camera;
+    bool orbiting = false;  // Left mouse button drag to orbit
+    bool move = false;   // Right mouse button drag to move target
+    float camera_fov = 60;      // Field of view
+    float camera_near = 0.1;
+    float camera_far = 100;
+    enum CameraProperty { C_NEAR, C_FAR, C_FOV };
+    CameraProperty current_property = C_FOV; // default
+
 };

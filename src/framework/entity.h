@@ -19,6 +19,7 @@ public:
     float animSpeed;
 
     Entity();
+    void Init(Mesh* m);
     void Render(Image* framebuffer, Camera* camera, const Color& c);
     void Update(float dt);
     void RandomAnim();

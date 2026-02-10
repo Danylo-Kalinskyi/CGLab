@@ -20,252 +20,123 @@ Application::Application(const char* caption, int width, int height)
 
     this->framebuffer.Resize(w, h);
     
-    this->animation_mode = false;
-    this->borderWidth = 2;
-    this->fill = false;
 }
 
 Application::~Application()
 {
 }
 
-void Application::Init(void)
-{
+void Application::Init(void) {
     std::cout << "Initiating app..." << std::endl;
 
     // Seed random generator
     std::srand(std::time(nullptr));
-    
-    // LAB 1 - Init Canvas and Particles
-    canvas.Resize(window_width, window_height);
-    canvas.Fill(Color::BLACK);
-    particles.Init(window_width, window_height);
-    
-    // LAB 1 - Load Images
-    pencilImage.LoadPNG("images/pencil.png", true);
-    eraserImage.LoadPNG("images/eraser.png", true);
-    lineImage.LoadPNG("images/line.png", true);
-    rectangleImage.LoadPNG("images/rectangle.png", true);
-    triangleImage.LoadPNG("images/triangle.png", true);
-    clearImage.LoadPNG("images/clear.png", true);
-    loadImage.LoadPNG("images/load.png", true);
-    saveImage.LoadPNG("images/save.png", true);
-    blackImage.LoadPNG("images/black.png", true);
-    cyanImage.LoadPNG("images/cyan.png", true);
-    greenImage.LoadPNG("images/green.png", true);
-    pinkImage.LoadPNG("images/pink.png", true);
-    redImage.LoadPNG("images/red.png", true);
-    whiteImage.LoadPNG("images/white.png", true);
-    yellowImage.LoadPNG("images/yellow.png", true);
-
-    // LAB 1 - Buttons Setup
-    int buttonSize = 32;
-    int buttonSpacing = 8;
-    int startX = 10;
-    int startY = window_height - (buttonSize + 10);
-
-    auto addButton = [&](Image& img, Button::ButtonType type) {
-        buttons.push_back(Button(img,
-            Vector2(startX, startY),
-            Vector2(startX + buttonSize, startY),
-            Vector2(startX + buttonSize, startY + buttonSize),
-            Vector2(startX, startY + buttonSize),
-            type));
-        startX += buttonSize + buttonSpacing;
-    };
-
-    // LAB 1 - Tools
-    addButton(pencilImage, Button::PENCIL);
-    addButton(eraserImage, Button::ERASER);
-    addButton(lineImage, Button::LINE);
-    addButton(rectangleImage, Button::RECTANGLE);
-    addButton(triangleImage, Button::TRIANGLE);
-    addButton(clearImage, Button::CLEARIMAGE);
-    addButton(loadImage, Button::LOADIMAGE);
-    addButton(saveImage, Button::SAVEIMAGE);
-
-    // LAB 1 - Colors
-    addButton(blackImage, Button::BLACKIMAGE);
-    addButton(whiteImage, Button::WHITEIMAGE);
-    addButton(redImage, Button::REDIMAGE);
-    addButton(greenImage, Button::GREENIMAGE);
-    addButton(cyanImage, Button::CYANIMAGE);
-    addButton(pinkImage, Button::PINKIMAGE);
-    addButton(yellowImage, Button::YELLOWIMAGE);
-
-    // LAB 1 - Default
-    drawingTool = Button::PENCIL;
-    borderColor = Color::WHITE;
-    fillColor = Color::WHITE;
-
+   
     // LAB 2 - Position the camera so the mesh is visible
-    camera.SetPerspective(60.0f, window_width / (float)window_height, 0.1f, 100.0f);
+    camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
     camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
 
     // LAB 2 - Initiate mesh and 3 entities
-    Mesh* mesh = new Mesh();
+    mesh = new Mesh();
     mesh->LoadOBJ("meshes/lee.obj");
 
     for (int i = 0; i < 3; ++i){
         Entity e;
-        e.mesh = mesh;
-        e.color = Color(rand() % 256, rand() % 256, rand() % 256);
-
-        // Random position inside [-2.5, 2.5] for x, y and z
-        e.position.x = ((float)rand() / RAND_MAX) * 5 - 2.5;
-        e.position.y = ((float)rand() / RAND_MAX) * 5 - 2.5;
-        e.position.z = ((float)rand() / RAND_MAX) * 5 - 2.5; 
-
-        e.RandomAnim();
+        e.Init(mesh);
         entities.push_back(e);
     }    
 
 }
 
-void Application::Render(void)
-{
-    framebuffer.Fill(Color::BLACK);
-    framebuffer.DrawImage(canvas, 0, 0);
-    
-    // LAB 1 - Particle animation
-    if (animation_mode) {
-        particles.Render(&framebuffer);
-    }
+void Application::Render(void) {
+    framebuffer.Fill(Color::BLACK);   
 
-    // LAB 1 - UI
-    for (auto& button : buttons) {
-        button.Render(framebuffer);
+    if (one_entity && !entities.empty()) {
+        entities[0].Render(&framebuffer, &camera, entities[0].color);
     }
-    framebuffer.DrawRect(window_width - 40, 10, 30, 30, Color::WHITE, 0, true, fill ? fillColor : borderColor);
-
-    for (auto& e : entities) {
-        e.Render(&framebuffer, &camera, e.color);
+    else {
+        for (auto& e : entities) {
+            e.Render(&framebuffer, &camera, e.color);
+        }
     }
 
     framebuffer.Render();
-
 }
 
-void Application::Update(float seconds_elapsed)
-{
-    particles.Update(seconds_elapsed); // LAB 1
+void Application::Update(float seconds_elapsed){
     for (auto& e : entities) {e.Update(seconds_elapsed);} // LAB 2
 }
 
-void Application::OnMouseButtonDown(SDL_MouseButtonEvent event)
-{
-    if (event.button == SDL_BUTTON_LEFT) {
-        int correctedY = (window_height - 1) - event.y;
-        Vector2 mousePos(event.x, (float)correctedY);
-        
-        bool clicked_button = false;
-        for (auto& button : buttons) {
-            if (button.IsMouseInside(Vector2((float)event.x, (float)event.y))) {
-                clicked_button = true;
-                Button::ButtonType type = button.GetType();
-                
-                if (type == Button::WHITEIMAGE) fill ? fillColor = Color::WHITE : borderColor = Color::WHITE;
-                else if (type == Button::BLACKIMAGE) fill ? fillColor = Color::BLACK : borderColor = Color::BLACK;
-                else if (type == Button::REDIMAGE) fill ? fillColor = Color::RED : borderColor = Color::RED;
-                else if (type == Button::GREENIMAGE) fill ? fillColor = Color::GREEN : borderColor = Color::GREEN;
-                else if (type == Button::CYANIMAGE) fill ? fillColor = Color::CYAN : borderColor = Color::CYAN;
-                else if (type == Button::PINKIMAGE) fill ? fillColor = Color::PURPLE : borderColor = Color::PURPLE;
-                else if (type == Button::YELLOWIMAGE) fill ? fillColor = Color::YELLOW : borderColor = Color::YELLOW;
-            
-                else if (type == Button::CLEARIMAGE) {
-                    canvas.Fill(Color::BLACK);
-                }
-                else if (type == Button::SAVEIMAGE) {
-                    canvas.SaveTGA("images/saved_drawing.tga");
-                }
-                else if (type == Button::LOADIMAGE) {
-                    canvas.LoadTGA("images/saved_drawing.tga", true);
-                }
-                else if (type <= Button::RECTANGLE) {
-                    drawingTool = type;
-                }
-                break;
-            }
-        }
-
-        if (!clicked_button) {
-            is_drawing = true;
-            draw_start_pos = mousePos;
-            draw_prev_pos = mousePos;
-            
-            if (drawingTool == Button::PENCIL) {
-                canvas.SetPixel((int)mousePos.x, (int)mousePos.y, borderColor);
-            } else if (drawingTool == Button::ERASER) {
-                canvas.SetPixel((int)mousePos.x, (int)mousePos.y, Color::BLACK);
-            }
-        }
-    }
+void Application::OnMouseButtonDown(SDL_MouseButtonEvent event){
+    int correctedY = (window_height - 1) - event.y;
+    Vector2 mousePos(event.x, (float)correctedY);
+    if (event.button == SDL_BUTTON_LEFT) { orbiting = true; } // Orbit around target
+    else if (event.button == SDL_BUTTON_RIGHT) { move = true; } // Move target
 }
 
-void Application::OnMouseButtonUp(SDL_MouseButtonEvent event)
-{
-    if (event.button == SDL_BUTTON_LEFT && is_drawing) {
-        int correctedY = (window_height - 1) - event.y;
-        Vector2 mousePos((float)event.x, (float)correctedY);
-        
-        if (drawingTool == Button::LINE) {
-            canvas.DrawLineDDA((int)draw_start_pos.x, (int)draw_start_pos.y,
-                               (int)mousePos.x, (int)mousePos.y, borderColor);
-        } else if (drawingTool == Button::RECTANGLE) {
-            int x = (int)std::min(draw_start_pos.x, mousePos.x);
-            int y = (int)std::min(draw_start_pos.y, mousePos.y);
-            int w = (int)std::abs(mousePos.x - draw_start_pos.x);
-            int h = (int)std::abs(mousePos.y - draw_start_pos.y);
-            canvas.DrawRect(x, y, w, h, borderColor, borderWidth, fill, fillColor);
-        } else if (drawingTool == Button::TRIANGLE) {
-            Vector2 p1 = { draw_start_pos.x, draw_start_pos.y };
-            Vector2 p2 = { mousePos.x, draw_start_pos.y };
-            float midX = (draw_start_pos.x + mousePos.x) / 2.0f;
-            Vector2 p3 = { midX, mousePos.y };
-            canvas.DrawTriangle(p1, p2, p3, borderColor, fill, fillColor);
-        }
-        is_drawing = false;
-    }
+void Application::OnMouseButtonUp(SDL_MouseButtonEvent event) {
+    if (event.button == SDL_BUTTON_LEFT) { orbiting = false; }
+    if (event.button == SDL_BUTTON_RIGHT) { move = false; }
 }
 
-void Application::OnMouseMove(SDL_MouseMotionEvent event)
-{
-    if (is_drawing) {
-        int correctedY = (window_height - 1) - event.y;
-        Vector2 mousePos((float)event.x, (float)correctedY);
-        
-        switch (drawingTool) {
-            case Button::PENCIL:
-                canvas.DrawLineDDA((int)draw_prev_pos.x, (int)draw_prev_pos.y,
-                                   (int)mousePos.x, (int)mousePos.y, borderColor);
-                draw_prev_pos = mousePos;
-                break;
+void Application::OnMouseMove(SDL_MouseMotionEvent event) {
+    int correctedY = (window_height - 1) - event.y;
+    Vector2 mousePos((float)event.x, (float)correctedY);
+    mouse_delta = mousePos - mouse_position;
+    if (orbiting) {
+        float yaw = mouse_delta.x * 0.01;  // horizontal rotation
+        float pitch = mouse_delta.y * 0.01;  // vertical rotation
+        // Orbit horizontally around world Y
+        camera.Rotate(yaw, Vector3(0, 1, 0));
 
-            case Button::ERASER:
-                canvas.DrawLineDDA((int)draw_prev_pos.x, (int)draw_prev_pos.y,
-                                   (int)mousePos.x, (int)mousePos.y, Color::BLACK);
-                draw_prev_pos = mousePos;
-                break;
-            default: break;
-        }
+        // Orbit vertically around local right axis
+        Vector3 right = (camera.center - camera.eye).Cross(camera.up);
+        camera.Rotate(pitch, right);
     }
+    else if (move) {
+        Vector3 delta(-mouse_delta.x * 0.01f, mouse_delta.y * 0.01f, 0);
+        camera.Move(delta);
+    }
+    mouse_position = mousePos;
 }
 
 void Application::OnKeyPressed(SDL_KeyboardEvent event)
 {
     switch(event.keysym.sym) {
-        case SDLK_ESCAPE: exit(0); break;
-        case SDLK_f: fill = !fill; break;
-        case SDLK_PLUS: borderWidth++; break;
-        case SDLK_MINUS: if (borderWidth > 1) borderWidth--; break;
-        case SDLK_1: drawingTool = Button::PENCIL; break;
-        case SDLK_2:
-            animation_mode = !animation_mode;
-            if (animation_mode) {
-                particles.Init(window_width, window_height);
+        // case SDLK_ESCAPE: exit(0); break;
+        case SDLK_1: 
+            one_entity = true; 
+            // Reset
+            if (!entities.empty()) {
+                entities.resize(1); // remove extras 
+                entities[0].Init(mesh); // reset first entity
             }
-            break;
+            break; // draw single entity
+        case SDLK_2: 
+            one_entity = false; 
+            // Reset
+            for (auto& e : entities) e.Init(mesh);
+            while ((int)entities.size() < 3) {   // 3 entities
+                Entity e;
+                e.Init(mesh);
+                entities.push_back(e);
+            }
+            break; // draw multiple animated entities
+        case SDLK_n: current_property = C_NEAR; break; // set current property to camera near
+        case SDLK_f: current_property = C_FAR; break; // set current property to camera far
+        case SDLK_v: current_property = C_FOV; break; // set current property to FOV
+        case SDLK_PLUS: 
+            if (current_property == C_NEAR) camera_near += 0.1;
+            else if (current_property == C_FAR) camera_far += 0.1;
+            else if (current_property == C_FOV) camera_fov += 1.0;
+            break; // increase current property
+        case SDLK_MINUS: 
+            if (current_property == C_NEAR) camera_near -= 0.1;
+            else if (current_property == C_FAR) camera_far -= 0.1;
+            else if (current_property == C_FOV) camera_fov -= 1.0;
+            break; // decrease current property
     }
+    camera.SetPerspective(camera_fov, window_width / (float)window_height, camera_near, camera_far);
 }
 
 void Application::OnWheel(SDL_MouseWheelEvent event) {}
