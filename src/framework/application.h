@@ -98,6 +98,7 @@ public:
     
     std::vector<Button> buttons;
 
-    Entity entity;
+    // LAB 2
+    std::vector<Entity> entities;
     Camera camera;
 };

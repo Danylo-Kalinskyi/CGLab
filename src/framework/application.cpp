@@ -32,13 +32,16 @@ Application::~Application()
 void Application::Init(void)
 {
     std::cout << "Initiating app..." << std::endl;
+
+    // Seed random generator
+    std::srand(std::time(nullptr));
     
-    // Init Canvas and Particles
+    // LAB 1 - Init Canvas and Particles
     canvas.Resize(window_width, window_height);
     canvas.Fill(Color::BLACK);
     particles.Init(window_width, window_height);
     
-    // Load Images
+    // LAB 1 - Load Images
     pencilImage.LoadPNG("images/pencil.png", true);
     eraserImage.LoadPNG("images/eraser.png", true);
     lineImage.LoadPNG("images/line.png", true);
@@ -55,7 +58,7 @@ void Application::Init(void)
     whiteImage.LoadPNG("images/white.png", true);
     yellowImage.LoadPNG("images/yellow.png", true);
 
-    // Buttons Setup
+    // LAB 1 - Buttons Setup
     int buttonSize = 32;
     int buttonSpacing = 8;
     int startX = 10;
@@ -71,7 +74,7 @@ void Application::Init(void)
         startX += buttonSize + buttonSpacing;
     };
 
-    // Tools
+    // LAB 1 - Tools
     addButton(pencilImage, Button::PENCIL);
     addButton(eraserImage, Button::ERASER);
     addButton(lineImage, Button::LINE);
@@ -81,7 +84,7 @@ void Application::Init(void)
     addButton(loadImage, Button::LOADIMAGE);
     addButton(saveImage, Button::SAVEIMAGE);
 
-    // Colors
+    // LAB 1 - Colors
     addButton(blackImage, Button::BLACKIMAGE);
     addButton(whiteImage, Button::WHITEIMAGE);
     addButton(redImage, Button::REDIMAGE);
@@ -90,33 +93,32 @@ void Application::Init(void)
     addButton(pinkImage, Button::PINKIMAGE);
     addButton(yellowImage, Button::YELLOWIMAGE);
 
-    // Default
+    // LAB 1 - Default
     drawingTool = Button::PENCIL;
     borderColor = Color::WHITE;
     fillColor = Color::WHITE;
 
-    // Initiate mesh and entity
-    Mesh* mesh = new Mesh();
-    mesh->LoadOBJ("meshes/lee.obj");
-
-    entity.mesh = mesh;
-    entity.model.SetIdentity();
-
-    // Optional: scale / translate so it fits the screen
-    Matrix44 scale;
-    scale.SetIdentity();
-    scale.M[0][0] = scale.M[1][1] = scale.M[2][2] = 0.01f;
-
-    Matrix44 translate;
-    translate.SetIdentity();
-    translate.M[3][2] = -3.0f; // move away from camera
-
-    entity.model = scale * translate;
-
-    // Position the camera so the mesh is visible
+    // LAB 2 - Position the camera so the mesh is visible
     camera.SetPerspective(60.0f, window_width / (float)window_height, 0.1f, 100.0f);
     camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
 
+    // LAB 2 - Initiate mesh and 3 entities
+    Mesh* mesh = new Mesh();
+    mesh->LoadOBJ("meshes/lee.obj");
+
+    for (int i = 0; i < 3; ++i){
+        Entity e;
+        e.mesh = mesh;
+        e.color = Color(rand() % 256, rand() % 256, rand() % 256);
+
+        // Random position inside [-2.5, 2.5] for x, y and z
+        e.position.x = ((float)rand() / RAND_MAX) * 5 - 2.5;
+        e.position.y = ((float)rand() / RAND_MAX) * 5 - 2.5;
+        e.position.z = ((float)rand() / RAND_MAX) * 5 - 2.5; 
+
+        e.RandomAnim();
+        entities.push_back(e);
+    }    
 
 }
 
@@ -125,18 +127,20 @@ void Application::Render(void)
     framebuffer.Fill(Color::BLACK);
     framebuffer.DrawImage(canvas, 0, 0);
     
-    // Particle animation
+    // LAB 1 - Particle animation
     if (animation_mode) {
         particles.Render(&framebuffer);
     }
 
-    // UI
+    // LAB 1 - UI
     for (auto& button : buttons) {
         button.Render(framebuffer);
     }
     framebuffer.DrawRect(window_width - 40, 10, 30, 30, Color::WHITE, 0, true, fill ? fillColor : borderColor);
 
-    entity.Render(&framebuffer, &camera, Color::WHITE);
+    for (auto& e : entities) {
+        e.Render(&framebuffer, &camera, e.color);
+    }
 
     framebuffer.Render();
 
@@ -144,8 +148,8 @@ void Application::Render(void)
 
 void Application::Update(float seconds_elapsed)
 {
-    particles.Update(seconds_elapsed);
-    entity.Update(seconds_elapsed);
+    particles.Update(seconds_elapsed); // LAB 1
+    for (auto& e : entities) {e.Update(seconds_elapsed);} // LAB 2
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event)
