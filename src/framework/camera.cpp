@@ -83,18 +83,22 @@ void Camera::LookAt(const Vector3& eye, const Vector3& center, const Vector3& up
 void Camera::UpdateViewMatrix()
 {
     view_matrix.SetIdentity();
-
     Vector3 f = (center - eye);
     f.Normalize();
-
-    Vector3 s = f.Cross(up);
+    Vector3 world_up(0, 1, 0);
+    Vector3 s = f.Cross(world_up); 
+    
+    if (s.Length() < 0.0001f) {
+        s = Vector3(1, 0, 0); // Default to X-axis
+    }
     s.Normalize();
-
     Vector3 u = s.Cross(f);
+
     view_matrix.M[0][0] = s.x;  view_matrix.M[1][0] = s.y;  view_matrix.M[2][0] = s.z;
     view_matrix.M[0][1] = u.x;  view_matrix.M[1][1] = u.y;  view_matrix.M[2][1] = u.z;
     view_matrix.M[0][2] = -f.x; view_matrix.M[1][2] = -f.y; view_matrix.M[2][2] = -f.z;
 
+    // Apply Translation
     Matrix44 T;
     T.MakeTranslationMatrix(-eye.x, -eye.y, -eye.z);
     
