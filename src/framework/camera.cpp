@@ -6,7 +6,6 @@
 Camera::Camera()
 {
 	view_matrix.SetIdentity();
-	SetOrthographic(-1,1,1,-1,-1,1);
 }
 
 Vector3 Camera::GetLocalVector(const Vector3& v)
@@ -30,11 +29,12 @@ Vector3 Camera::ProjectVector(Vector3 pos)
 
 void Camera::Rotate(float angle, const Vector3& axis)
 {
-	Matrix44 R;
-	R.MakeRotationMatrix(angle, axis);
-	Vector3 new_front = R * (center - eye);
-	center = eye + new_front;
-	UpdateViewMatrix();
+    Matrix44 R;
+    R.MakeRotationMatrix(angle, axis);
+    Vector3 distance_vec = eye - center;
+    Vector3 rotated_dist = R.RotateVector(distance_vec);
+    eye = center + rotated_dist;
+    UpdateViewMatrix();
 }
 
 void Camera::Move(Vector3 delta)
@@ -82,45 +82,52 @@ void Camera::LookAt(const Vector3& eye, const Vector3& center, const Vector3& up
 
 void Camera::UpdateViewMatrix()
 {
-	// Reset Matrix (Identity)
-	view_matrix.SetIdentity();
+    view_matrix.SetIdentity();
 
-	// Comment this line to create your own projection matrix!
-	SetExampleViewMatrix();
+    Vector3 f = (center - eye);
+    f.Normalize();
 
-	// Remember how to fill a Matrix4x4 (check framework slides)
-	// Careful with the order of matrix multiplications, and be sure to use normalized vectors!
-	
-	// Create the view matrix rotation
-	// ...
-	// view_matrix.M[3][3] = 1.0;
+    Vector3 s = f.Cross(up);
+    s.Normalize();
 
-	// Translate view matrix
-	// ...
+    Vector3 u = s.Cross(f);
+    view_matrix.M[0][0] = s.x;  view_matrix.M[1][0] = s.y;  view_matrix.M[2][0] = s.z;
+    view_matrix.M[0][1] = u.x;  view_matrix.M[1][1] = u.y;  view_matrix.M[2][1] = u.z;
+    view_matrix.M[0][2] = -f.x; view_matrix.M[1][2] = -f.y; view_matrix.M[2][2] = -f.z;
 
-	UpdateViewProjectionMatrix();
+    Matrix44 T;
+    T.MakeTranslationMatrix(-eye.x, -eye.y, -eye.z);
+    
+    view_matrix = view_matrix * T;
+
+    UpdateViewProjectionMatrix();
 }
 
-// Create a projection matrix
 void Camera::UpdateProjectionMatrix()
 {
-	// Reset Matrix (Identity)
-	projection_matrix.SetIdentity();
+    projection_matrix.SetIdentity();
 
-	// Comment this line to create your own projection matrix!
-	SetExampleProjectionMatrix();
+    if (type == PERSPECTIVE) {
+        float f = 1.0f / tan((fov * (M_PI / 180.0f)) / 2.0f);
+        
+        projection_matrix.M[0][0] = f / aspect;
+        projection_matrix.M[1][1] = f;
+        projection_matrix.M[2][2] = (far_plane + near_plane) / (near_plane - far_plane);
+        projection_matrix.M[2][3] = -1.0f;
+        projection_matrix.M[3][2] = (2.0f * far_plane * near_plane) / (near_plane - far_plane);
+        projection_matrix.M[3][3] = 0.0f;
+    }
+    else if (type == ORTHOGRAPHIC) {
+        projection_matrix.M[0][0] = 2.0f / (right - left);
+        projection_matrix.M[1][1] = 2.0f / (top - bottom);
+        projection_matrix.M[2][2] = -2.0f / (far_plane - near_plane);
+        
+        projection_matrix.M[3][0] = -(right + left) / (right - left);
+        projection_matrix.M[3][1] = -(top + bottom) / (top - bottom);
+        projection_matrix.M[3][2] = -(far_plane + near_plane) / (far_plane - near_plane);
+    } 
 
-	// Remember how to fill a Matrix4x4 (check framework slides)
-	
-	if (type == PERSPECTIVE) {
-		// projection_matrix.M[2][3] = -1;
-		// ...
-	}
-	else if (type == ORTHOGRAPHIC) {
-		// ...
-	} 
-
-	UpdateViewProjectionMatrix();
+    UpdateViewProjectionMatrix();
 }
 
 void Camera::UpdateViewProjectionMatrix()

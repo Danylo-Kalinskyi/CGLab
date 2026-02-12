@@ -33,6 +33,7 @@ void Application::Init(void) {
     std::srand(std::time(nullptr));
    
     // LAB 2 - Position the camera so the mesh is visible
+    camera.SetOrthographic(-1,1,1,-1,-1,1);
     camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
     camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
 
@@ -83,15 +84,22 @@ void Application::OnMouseMove(SDL_MouseMotionEvent event) {
     int correctedY = (window_height - 1) - event.y;
     Vector2 mousePos((float)event.x, (float)correctedY);
     mouse_delta = mousePos - mouse_position;
-    if (orbiting) {
-        float yaw = mouse_delta.x * 0.01;  // horizontal rotation
-        float pitch = mouse_delta.y * 0.01;  // vertical rotation
-        // Orbit horizontally around world Y
-        camera.Rotate(yaw, Vector3(0, 1, 0));
 
-        // Orbit vertically around local right axis
-        Vector3 right = (camera.center - camera.eye).Cross(camera.up);
-        camera.Rotate(pitch, right);
+    if (orbiting) {
+        yaw -= mouse_delta.x * 0.01f;
+        pitch -= mouse_delta.y * 0.01f;
+
+        float limit = 1.5f; 
+        if (pitch > limit) pitch = limit;
+        if (pitch < -limit) pitch = -limit;
+
+        Vector3 offset;
+        offset.x = distance * cos(pitch) * sin(yaw);
+        offset.y = distance * sin(pitch);
+        offset.z = distance * cos(pitch) * cos(yaw);
+
+        camera.eye = camera.center + offset;
+        camera.UpdateViewMatrix();
     }
     else if (move) {
         Vector3 delta(-mouse_delta.x * 0.01f, mouse_delta.y * 0.01f, 0);
@@ -141,3 +149,5 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
 
 void Application::OnWheel(SDL_MouseWheelEvent event) {}
 void Application::OnFileChanged(const char* filename) { Shader::ReloadSingleShader(filename); }
+
+
