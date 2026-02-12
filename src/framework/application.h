@@ -79,4 +79,6 @@ public:
     enum CameraProperty { C_NEAR, C_FAR, C_FOV };
     CameraProperty current_property = C_FOV; // default
 
+    // LAB 3 - triangular meshes
+    FloatImage z_buffer;
 };

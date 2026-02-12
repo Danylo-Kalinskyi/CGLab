@@ -52,12 +52,17 @@ void Application::Init(void) {
 void Application::Render(void) {
     framebuffer.Fill(Color::BLACK);   
 
+    z_buffer.Resize(window_width, window_height);
+    for (int i = 0; i < z_buffer.width * z_buffer.height; ++i) {
+        z_buffer.pixels[i] = 1.0f; 
+    }
+
     if (one_entity && !entities.empty()) {
-        entities[0].Render(&framebuffer, &camera, entities[0].color);
+        entities[0].Render(&framebuffer, &camera, entities[0].color, &z_buffer);
     }
     else {
         for (auto& e : entities) {
-            e.Render(&framebuffer, &camera, e.color);
+            e.Render(&framebuffer, &camera, e.color, &z_buffer);
         }
     }
 

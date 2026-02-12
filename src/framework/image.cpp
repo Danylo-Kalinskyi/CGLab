@@ -470,11 +470,14 @@ void Image::DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2
         ScanLineDDA(p0.x, p0.y, p2.x, p2.y, table);
         ScanLineDDA(p1.x, p1.y, p2.x, p2.y, table);
         
-        for (int i = ymin + 1; i < ymax - 1; i++) {
-            for (int j = table[i].minx + 1; j <= table[i].maxx - 1; j++) {
-                SetPixel(j, i, fillColor);
-            }
+        for (int i = ymin; i <= ymax; i++) {
+        if (i < 0 || i >= height) continue; 
+
+        for (int j = table[i].minx; j <= table[i].maxx; j++) {
+            if (j < 0 || j >= width) continue;
+            SetPixel(j, i, fillColor);
         }
+    }
     }
 }
 
@@ -495,4 +498,51 @@ void Image::DrawImage(const Image& image, int x, int y)
 			SetPixelUnsafe((unsigned int)dx, (unsigned int)dy, image.GetPixel((unsigned int)sx, (unsigned int)sy));
 		}
 	}
+}
+
+void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* z_buffer)
+{
+    // box
+    int minX = std::max(0, (int)std::floor(std::min({ p0.x, p1.x, p2.x })));
+	int maxX = std::min((int)width - 1, (int)std::ceil(std::max({ p0.x, p1.x, p2.x })));
+    int minY = std::max(0, (int)std::floor(std::min({ p0.y, p1.y, p2.y })));
+    int maxY = std::min((int)height - 1, (int)std::ceil(std::max({ p0.y, p1.y, p2.y })));
+
+    // barycentric coordinates (Area of the triangle * 2)
+    // area(A, B, C) = (By-Cy)(Ax-Cx) + (Cx-Bx)(Ay-Cy)
+    float areaDenom = (p1.y - p2.y) * (p0.x - p2.x) + (p2.x - p1.x) * (p0.y - p2.y);
+    if (std::abs(areaDenom) < 0.000001f) return;
+
+    for (int y = minY; y <= maxY; ++y) {
+        for (int x = minX; x <= maxX; ++x) {
+            
+            // barycentric weights
+            // w0 = area(P, p1, p2) / areaDenom
+            float w0 = ((p1.y - p2.y) * (x - p2.x) + (p2.x - p1.x) * (y - p2.y)) / areaDenom;
+            // w1 = area(p0, P, p2) / areaDenom
+            float w1 = ((p2.y - p0.y) * (x - p2.x) + (p0.x - p2.x) * (y - p2.y)) / areaDenom;
+            // w2 = 1 - w0 - w1
+            float w2 = 1.0f - w0 - w1;
+
+			if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
+                // interpolates the Z value
+                float z = w0 * p0.z + w1 * p1.z + w2 * p2.z;
+
+                // depth
+                if (x >= 0 && x < width && y >= 0 && y < height && z < z_buffer->GetPixel(x, y)) {
+                    
+                    // updates Z-Buffer new depth
+                    z_buffer->SetPixel(x, y, z);
+
+                    // interpolate Color and Set Pixel
+                    Color final_color(
+                        (uint8_t)(w0 * c0.r + w1 * c1.r + w2 * c2.r),
+                        (uint8_t)(w0 * c0.g + w1 * c1.g + w2 * c2.g),
+                        (uint8_t)(w0 * c0.b + w1 * c1.b + w2 * c2.b)
+                    );
+                    SetPixelUnsafe(x, y, final_color);
+                }
+            }
+        }
+    }
 }

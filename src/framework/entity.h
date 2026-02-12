@@ -20,7 +20,7 @@ public:
 
     Entity();
     void Init(Mesh* m);
-    void Render(Image* framebuffer, Camera* camera, const Color& c);
+    void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer);
     void Update(float dt);
     void RandomAnim();
 };

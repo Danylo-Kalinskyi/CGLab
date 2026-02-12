@@ -40,49 +40,37 @@ void Entity::Update(float dt) {
     model = T * R * S;
 }
 
-void Entity::Render(Image* framebuffer, Camera* camera, const Color& c) {
+void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer) {
     if (!mesh) return;
-    
-    auto inside = [](const Vector3& p) {
-        return p.x >= -1 && p.x <= 1 &&
-            p.y >= -1 && p.y <= 1 &&
-            p.z >= -1 && p.z <= 1;
-        };
+
     const auto& vertices = mesh->GetVertices();
 
     for (int i = 0; i < vertices.size(); i += 3) {
-        Vector3 v0 = vertices[i];
-        Vector3 v1 = vertices[i + 1];
-        Vector3 v2 = vertices[i + 2];
+        // transform to World Space
+        Vector3 v0 = model * vertices[i];
+        Vector3 v1 = model * vertices[i + 1];
+        Vector3 v2 = model * vertices[i + 2];
 
-        // Transform to world space
-        v0 = model * v0;
-        v1 = model * v1;
-        v2 = model * v2;
-
-        // Project to screen
+        // project vertices to Clip Space (p.x and p.y are NDC, p.z is depth)
         Vector3 p0 = camera->ProjectVector(v0);
         Vector3 p1 = camera->ProjectVector(v1);
         Vector3 p2 = camera->ProjectVector(v2);
 
-        if (!inside(p0) || !inside(p1) || !inside(p2))
-            continue;
+        // Simple Clipping (Skip if the whole triangle is behind the camera)
+        if (p0.z < -1 && p1.z < -1 && p2.z < -1) continue;
 
-        Vector2 s0((p0.x * 0.5f + 0.5f) * framebuffer->width,
-            (p0.y * 0.5f + 0.5f) * framebuffer->height);
+        // Viewport Transform (NDC to Screen Pixels)
+        // We keep the Z value in the Vector3 for use in the interpolation function
+        Vector3 s0((p0.x * 0.5f + 0.5f) * framebuffer->width, (p0.y * 0.5f + 0.5f) * framebuffer->height, p0.z);
+        Vector3 s1((p1.x * 0.5f + 0.5f) * framebuffer->width, (p1.y * 0.5f + 0.5f) * framebuffer->height, p1.z);
+        Vector3 s2((p2.x * 0.5f + 0.5f) * framebuffer->width, (p2.y * 0.5f + 0.5f) * framebuffer->height, p2.z);
 
-        Vector2 s1((p1.x * 0.5f + 0.5f) * framebuffer->width,
-            (p1.y * 0.5f + 0.5f) * framebuffer->height);
+        Color c0 = Color::RED;
+        Color c1 = Color::GREEN;
+        Color c2 = Color::BLUE;
 
-        Vector2 s2((p2.x * 0.5f + 0.5f) * framebuffer->width,
-            (p2.y * 0.5f + 0.5f) * framebuffer->height);
-
-        // Draw in screen space
-        framebuffer->DrawLineDDA(s0.x, s0.y, s1.x, s1.y, c);
-        framebuffer->DrawLineDDA(s1.x, s1.y, s2.x, s2.y, c);
-        framebuffer->DrawLineDDA(s2.x, s2.y, s0.x, s0.y, c);
+        framebuffer->DrawTriangleInterpolated(s0, s1, s2, c0, c1, c2, z_buffer);
     }
-
 }
 
 // ADDITIONAL FUNCTION
