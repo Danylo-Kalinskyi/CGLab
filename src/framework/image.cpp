@@ -500,52 +500,52 @@ void Image::DrawImage(const Image& image, int x, int y)
 	}
 }
 
-void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* z_buffer, 
-	Image* texture, const Vector2& uv0, const Vector2& uv1, const Vector2& uv2)
+void Image::DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* z_buffer)
 {
     // box
-    int minX = std::max(0, (int)std::floor(std::min({ p0.x, p1.x, p2.x })));
-	int maxX = std::min((int)width - 1, (int)std::ceil(std::max({ p0.x, p1.x, p2.x })));
-    int minY = std::max(0, (int)std::floor(std::min({ p0.y, p1.y, p2.y })));
-    int maxY = std::min((int)height - 1, (int)std::ceil(std::max({ p0.y, p1.y, p2.y })));
+	int minX = std::max(0, (int)std::floor(std::min({ triangle.p0.x, triangle.p1.x, triangle.p2.x })));
+	int maxX = std::min((int)width - 1, (int)std::ceil(std::max({ triangle.p0.x, triangle.p1.x, triangle.p2.x })));
+	int minY = std::max(0, (int)std::floor(std::min({ triangle.p0.y, triangle.p1.y, triangle.p2.y })));
+	int maxY = std::min((int)height - 1, (int)std::ceil(std::max({ triangle.p0.y, triangle.p1.y, triangle.p2.y })));
 
     // barycentric coordinates (Area of the triangle * 2)
     // area(A, B, C) = (By-Cy)(Ax-Cx) + (Cx-Bx)(Ay-Cy)
-    float areaDenom = (p1.y - p2.y) * (p0.x - p2.x) + (p2.x - p1.x) * (p0.y - p2.y);
-	if (std::abs(areaDenom) < 0.000001f) { return; }
+float areaDenom = (triangle.p1.y - triangle.p2.y) * (triangle.p0.x - triangle.p2.x) + 
+                      (triangle.p2.x - triangle.p1.x) * (triangle.p0.y - triangle.p2.y);	
+if (std::abs(areaDenom) < 0.000001f) { return; }
 
     for (int y = minY; y <= maxY; ++y) {
         for (int x = minX; x <= maxX; ++x) {
             
             // barycentric weights
-            // w0 = area(P, p1, p2) / areaDenom
-            float w0 = ((p1.y - p2.y) * (x - p2.x) + (p2.x - p1.x) * (y - p2.y)) / areaDenom;
-            // w1 = area(p0, P, p2) / areaDenom
-            float w1 = ((p2.y - p0.y) * (x - p2.x) + (p0.x - p2.x) * (y - p2.y)) / areaDenom;
-            // w2 = 1 - w0 - w1
-            float w2 = 1.0 - w0 - w1;
+			float w0 = ((triangle.p1.y - triangle.p2.y) * (x - triangle.p2.x) + (triangle.p2.x - triangle.p1.x) * (y - triangle.p2.y)) / areaDenom;
+			float w1 = ((triangle.p2.y - triangle.p0.y) * (x - triangle.p2.x) + (triangle.p0.x - triangle.p2.x) * (y - triangle.p2.y)) / areaDenom;
+			float w2 = 1.0f - w0 - w1;
 
 			if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
                 // interpolates the Z value
-                float z = w0 * p0.z + w1 * p1.z + w2 * p2.z;
+				float z = w0 * triangle.p0.z + w1 * triangle.p1.z + w2 * triangle.p2.z;
 
                 // depth
-                if (x >= 0 && x < width && y >= 0 && y < height && z < z_buffer->GetPixel(x, y)) {
+                if (x >= 0 && x < width && y >= 0 && y < height && (!z_buffer || z < z_buffer->GetPixel(x, y))) {
                     
-                    // updates Z-Buffer new depth
-                    z_buffer->SetPixel(x, y, z);
+					if (z_buffer) z_buffer->SetPixel(x, y, z);
 
-					// interpolate UV
-					Vector2 uv = uv0 * w0 + uv1 * w1 + uv2 * w2;
-					int maxX = (int)texture->width - 1;
-					int maxY = (int)texture->height - 1;
-					int texX = (int)(uv.x * (texture->width - 1));
-					int texY = (int)(uv.y * (texture->height - 1));
-					texX = std::max(0, std::min(maxX, texX));
-					texY = std::max(0, std::min(maxY, texY));
+					Color final_color;
 
-					Color final_color = texture->GetPixel(texX, texY);
-                    SetPixelUnsafe(x, y, final_color);
+					if (triangle.texture) {
+						// interpolate UVs
+						Vector2 uv = triangle.uv0 * w0 + triangle.uv1 * w1 + triangle.uv2 * w2;
+						int texX = (int)(uv.x * (triangle.texture->width - 1));
+						int texY = (int)(uv.y * (triangle.texture->height - 1));
+						final_color = triangle.texture->GetPixelSafe(texX, texY);
+					}
+					else {
+						// interpolate colors
+						final_color = triangle.c0 * w0 + triangle.c1 * w1 + triangle.c2 * w2;
+					}
+
+					SetPixelUnsafe(x, y, final_color);
                 }
             }
         }

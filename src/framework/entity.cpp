@@ -92,13 +92,22 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatIma
                 break;
 
             case eRenderMode::TRIANGLES_INTERPOLATED:
-                if (useTexture && interpolateUVs)
-                    framebuffer->DrawTriangleInterpolated(s0, s1, s2, Color::WHITE, Color::WHITE, Color::WHITE,
-                        useOcclusion ? z_buffer : nullptr, texture, uv0, uv1, uv2);
-                else
-                    framebuffer->DrawTriangleInterpolated(s0, s1, s2, Color::RED, Color::GREEN, Color::BLUE,
-                        useOcclusion ? z_buffer : nullptr, texture, uv0, uv1, uv2);
-                break;
+                sTriangleInfo tri;
+                tri.p0 = s0; tri.p1 = s1; tri.p2 = s2;
+                tri.uv0 = uv0; tri.uv1 = uv1; tri.uv2 = uv2;
+
+                // Set colors based on your logic
+                if (useTexture && interpolateUVs) {
+                    tri.c0 = tri.c1 = tri.c2 = Color::WHITE;
+                    tri.texture = texture;
+                }
+                else {
+                    tri.c0 = Color::RED; tri.c1 = Color::GREEN; tri.c2 = Color::BLUE;
+                    tri.texture = nullptr; // Ignore texture if we want interpolated colors
+                }
+
+                // Draw using the refactored function
+                framebuffer->DrawTriangleInterpolated(tri, useOcclusion ? z_buffer : nullptr);
         }
     }
 }

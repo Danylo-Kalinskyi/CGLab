@@ -19,7 +19,15 @@
 class FloatImage;
 class Entity;
 class Camera;
+class Image;
 
+// LAB 3.4
+struct sTriangleInfo {
+	Vector3 p0, p1, p2;   // Screen positions + Z depth
+	Vector2 uv0, uv1, uv2; // Texture coordinates
+	Color c0, c1, c2;     // Vertex colors
+	Image* texture;       // Pointer to the entity's texture
+};
 
 
 // A matrix of pixels
@@ -106,8 +114,7 @@ public:
                   int borderWidth, bool isFilled, const Color& fillColor);
     void DrawTriangle(const Vector2& p0, const Vector2& p1, const Vector2& p2, const Color& borderColor, bool isFilled, const Color& fillColor);
     void DrawImage(const Image& image, int x, int y);
-	void DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* z_buffer, Image* texture,
-		const Vector2& uv0, const Vector2& uv1, const Vector2& uv2);
+	void DrawTriangleInterpolated(const sTriangleInfo& triangle, FloatImage* z_buffer);
 
 };
 
