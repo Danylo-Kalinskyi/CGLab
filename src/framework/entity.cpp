@@ -17,7 +17,7 @@ void Entity::Init(Mesh* m) {
     RandomAnim();
     // we load the texture
     texture = new Image();
-    texture->LoadTGA("textures/lee_normal.tga", true);
+    texture->LoadTGA("textures/lee_color_specular.tga", true);
 }
 
 void Entity::Update(float dt) {

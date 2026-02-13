@@ -29,7 +29,7 @@ public:
     bool use_texture = true;
 
     // LAB 3 - interactivity
-    enum class eRenderMode { WIREFRAME, TRIANGLES, TRIANGLES_INTERPOLATED };
+    enum class eRenderMode { POINTCOULD, WIREFRAME, TRIANGLES, TRIANGLES_INTERPOLATED };
     eRenderMode mode = eRenderMode::TRIANGLES_INTERPOLATED;
     bool useTexture = true;
     bool useOcclusion = true;
