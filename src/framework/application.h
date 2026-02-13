@@ -64,10 +64,10 @@ public:
     std::vector<Entity> entities;
     Mesh* mesh = nullptr;
     bool one_entity = false; // Initially, we draw 3 entities
-    float total_pitch = 0.0f;
-    float yaw = 0.0f;
-    float pitch = 0.0f;
-    float distance = 5.0f; // Distance from center to eye
+    float total_pitch = 0.0;
+    float yaw = 0.0;
+    float pitch = 0.0;
+    float distance = 5.0; // Distance from center to eye
 
     // LAB 2 - camera control
     Camera camera;

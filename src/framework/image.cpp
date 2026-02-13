@@ -500,7 +500,8 @@ void Image::DrawImage(const Image& image, int x, int y)
 	}
 }
 
-void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* z_buffer)
+void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const Vector3& p2, const Color& c0, const Color& c1, const Color& c2, FloatImage* z_buffer, 
+	Image* texture, const Vector2& uv0, const Vector2& uv1, const Vector2& uv2)
 {
     // box
     int minX = std::max(0, (int)std::floor(std::min({ p0.x, p1.x, p2.x })));
@@ -511,7 +512,7 @@ void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const
     // barycentric coordinates (Area of the triangle * 2)
     // area(A, B, C) = (By-Cy)(Ax-Cx) + (Cx-Bx)(Ay-Cy)
     float areaDenom = (p1.y - p2.y) * (p0.x - p2.x) + (p2.x - p1.x) * (p0.y - p2.y);
-    if (std::abs(areaDenom) < 0.000001f) return;
+	if (std::abs(areaDenom) < 0.000001f) { return; }
 
     for (int y = minY; y <= maxY; ++y) {
         for (int x = minX; x <= maxX; ++x) {
@@ -522,7 +523,7 @@ void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const
             // w1 = area(p0, P, p2) / areaDenom
             float w1 = ((p2.y - p0.y) * (x - p2.x) + (p0.x - p2.x) * (y - p2.y)) / areaDenom;
             // w2 = 1 - w0 - w1
-            float w2 = 1.0f - w0 - w1;
+            float w2 = 1.0 - w0 - w1;
 
 			if (w0 >= 0 && w1 >= 0 && w2 >= 0) {
                 // interpolates the Z value
@@ -534,12 +535,16 @@ void Image::DrawTriangleInterpolated(const Vector3& p0, const Vector3& p1, const
                     // updates Z-Buffer new depth
                     z_buffer->SetPixel(x, y, z);
 
-                    // interpolate Color and Set Pixel
-                    Color final_color(
-                        (uint8_t)(w0 * c0.r + w1 * c1.r + w2 * c2.r),
-                        (uint8_t)(w0 * c0.g + w1 * c1.g + w2 * c2.g),
-                        (uint8_t)(w0 * c0.b + w1 * c1.b + w2 * c2.b)
-                    );
+					// interpolate UV
+					Vector2 uv = uv0 * w0 + uv1 * w1 + uv2 * w2;
+					int maxX = (int)texture->width - 1;
+					int maxY = (int)texture->height - 1;
+					int texX = (int)(uv.x * (texture->width - 1));
+					int texY = (int)(uv.y * (texture->height - 1));
+					texX = std::max(0, std::min(maxX, texX));
+					texY = std::max(0, std::min(maxY, texY));
+
+					Color final_color = texture->GetPixel(texX, texY);
                     SetPixelUnsafe(x, y, final_color);
                 }
             }

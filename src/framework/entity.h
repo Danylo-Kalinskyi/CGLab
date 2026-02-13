@@ -23,4 +23,15 @@ public:
     void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer);
     void Update(float dt);
     void RandomAnim();
+
+    // LAB 3.4
+    Image* texture = nullptr;
+    bool use_texture = true;
+
+    // LAB 3 - interactivity
+    enum class eRenderMode { WIREFRAME, TRIANGLES, TRIANGLES_INTERPOLATED };
+    eRenderMode mode = eRenderMode::TRIANGLES_INTERPOLATED;
+    bool useTexture = true;
+    bool useOcclusion = true;
+    bool interpolateUVs = true;
 };

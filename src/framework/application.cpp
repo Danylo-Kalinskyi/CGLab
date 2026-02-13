@@ -148,11 +148,41 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
             else if (current_property == C_FAR) camera_far -= 0.1;
             else if (current_property == C_FOV) camera_fov -= 1.0;
             break; // decrease current property
+        case SDLK_t: // texture
+            for (auto& e : entities) e.useTexture = !e.useTexture;
+            break;
+
+        case SDLK_z: // Toggle Z-buffer
+            for (auto& e : entities) e.useOcclusion = !e.useOcclusion;
+            break;
+
+        case SDLK_c: // Toggle UV interpolation
+            for (auto& e : entities) e.interpolateUVs = !e.interpolateUVs;
+            break;
+
+        case SDLK_w: // Toggle wireframe / filled
+            for (auto& e : entities) {
+                if (e.mode == Entity::eRenderMode::WIREFRAME) { e.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED; }
+                else { e.mode = Entity::eRenderMode::WIREFRAME; }
+            }
+            break;
     }
     camera.SetPerspective(camera_fov, window_width / (float)window_height, camera_near, camera_far);
 }
 
-void Application::OnWheel(SDL_MouseWheelEvent event) {}
+void Application::OnWheel(SDL_MouseWheelEvent event) {
+    float dy = event.preciseY;
+    float zoomSpeed = 0.2;
+
+    Vector3 dir = camera.center - camera.eye;
+    float dist = dir.Length();
+    dir.Normalize();
+    dist -= zoomSpeed * dy;
+
+    if (dist < 0.1) dist = 0.1;
+
+    camera.eye = camera.center - dir * dist;
+    camera.UpdateViewMatrix();
+}
+
 void Application::OnFileChanged(const char* filename) { Shader::ReloadSingleShader(filename); }
-
-

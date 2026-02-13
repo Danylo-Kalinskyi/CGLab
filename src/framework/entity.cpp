@@ -15,6 +15,9 @@ void Entity::Init(Mesh* m) {
     position.y = ((float)rand() / RAND_MAX) * 4 - 2;
     position.z = ((float)rand() / RAND_MAX) * 4 - 2;
     RandomAnim();
+    // we load the texture
+    texture = new Image();
+    texture->LoadTGA("textures/lee_normal.tga", true);
 }
 
 void Entity::Update(float dt) {
@@ -38,6 +41,7 @@ void Entity::Update(float dt) {
     R.MakeRotationMatrix(rotation.x + rotation.y + rotation.z, animAxis);
     S.MakeScaleMatrix(scale.x, scale.y, scale.z);
     model = T * R * S;
+
 }
 
 void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer) {
@@ -69,7 +73,33 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatIma
         Color c1 = Color::GREEN;
         Color c2 = Color::BLUE;
 
-        framebuffer->DrawTriangleInterpolated(s0, s1, s2, c0, c1, c2, z_buffer);
+        // We load the mesh' UVs
+        const auto& uvs = mesh->GetUVs();
+        Vector2 uv0 = uvs[i];
+        Vector2 uv1 = uvs[i + 1];
+        Vector2 uv2 = uvs[i + 2];
+
+        switch (mode) {
+
+            case eRenderMode::WIREFRAME:
+                framebuffer->DrawLineDDA(s0.x, s0.y, s1.x, s1.y, c);
+                framebuffer->DrawLineDDA(s1.x, s1.y, s2.x, s2.y, c);
+                framebuffer->DrawLineDDA(s2.x, s2.y, s0.x, s0.y, c);
+                break;
+
+            case eRenderMode::TRIANGLES:
+                framebuffer->DrawTriangle(Vector2(s0.x, s0.y), Vector2(s1.x, s1.y), Vector2(s2.x, s2.y), c, true, c);
+                break;
+
+            case eRenderMode::TRIANGLES_INTERPOLATED:
+                if (useTexture && interpolateUVs)
+                    framebuffer->DrawTriangleInterpolated(s0, s1, s2, Color::WHITE, Color::WHITE, Color::WHITE,
+                        useOcclusion ? z_buffer : nullptr, texture, uv0, uv1, uv2);
+                else
+                    framebuffer->DrawTriangleInterpolated(s0, s1, s2, Color::RED, Color::GREEN, Color::BLUE,
+                        useOcclusion ? z_buffer : nullptr, texture, uv0, uv1, uv2);
+                break;
+        }
     }
 }
 
