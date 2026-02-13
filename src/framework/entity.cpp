@@ -96,17 +96,26 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatIma
                 tri.p0 = s0; tri.p1 = s1; tri.p2 = s2;
                 tri.uv0 = uv0; tri.uv1 = uv1; tri.uv2 = uv2;
 
-                // Set colors based on your logic
-                if (useTexture && interpolateUVs) {
-                    tri.c0 = tri.c1 = tri.c2 = Color::WHITE;
+                if (useTexture) {
                     tri.texture = texture;
+                    tri.c0 = tri.c1 = tri.c2 = Color::WHITE;
                 }
                 else {
-                    tri.c0 = Color::RED; tri.c1 = Color::GREEN; tri.c2 = Color::BLUE;
-                    tri.texture = nullptr; // Ignore texture if we want interpolated colors
+                    tri.texture = nullptr;
                 }
 
-                // Draw using the refactored function
+                // color interpolation vs plain color 
+                if (!useTexture) {
+                    if (interpolateUVs) {
+                        tri.c0 = Color::RED;
+                        tri.c1 = Color::GREEN;
+                        tri.c2 = Color::BLUE;
+                    }
+                    else {
+                        tri.c0 = tri.c1 = tri.c2 = this->color;
+                    }
+                }
+
                 framebuffer->DrawTriangleInterpolated(tri, useOcclusion ? z_buffer : nullptr);
         }
     }
