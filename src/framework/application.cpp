@@ -59,9 +59,13 @@ void Application::Init(void) {
 void Application::Render(){
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (!shader) { return; }
     shader->Enable();
     shader->SetFloat("u_time", time);
     shader->SetVector2("u_res", Vector2(window_width, window_height));
+    // interactivity variables
+    shader->SetInt("u_task", current_task);
+    shader->SetInt("u_subtask", current_subtask);
     mesh->Render();
     shader->Disable();
 }

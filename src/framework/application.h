@@ -88,6 +88,6 @@ public:
 
     // LAB 4 & 5 - interactivity
     int current_task = 1;    // For "1" to "4"
-    int current_subtask = 0; // For "a" to "f" (0=a, 1=b, etc.)
+    int current_subtask = 0; // For "a" to "f"
     bool is_lab5 = false;    // For "L"
 };
