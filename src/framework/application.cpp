@@ -32,6 +32,12 @@ void Application::Init(void) {
     // Seed random generator
     std::srand(std::time(nullptr));
    
+    // LAB 4 - create quad mesh and load shaders
+    mesh = new Mesh();
+    mesh->CreateQuad();
+    shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
+
+    /*
     // LAB 2 - Position the camera so the mesh is visible
     camera.SetOrthographic(-1,1,1,-1,-1,1);
     camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
@@ -46,30 +52,22 @@ void Application::Init(void) {
         e.Init(mesh);
         entities.push_back(e);
     }    
+    */
 
 }
 
-void Application::Render(void) {
-    framebuffer.Fill(Color::BLACK);   
-
-    z_buffer.Resize(window_width, window_height);
-    for (int i = 0; i < z_buffer.width * z_buffer.height; ++i) {
-        z_buffer.pixels[i] = 1.0f; 
-    }
-
-    if (one_entity && !entities.empty()) {
-        entities[0].Render(&framebuffer, &camera, entities[0].color, &z_buffer);
-    }
-    else {
-        for (auto& e : entities) {
-            e.Render(&framebuffer, &camera, e.color, &z_buffer);
-        }
-    }
-
-    framebuffer.Render();
+void Application::Render(){
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    shader->Enable();
+    shader->SetFloat("u_time", time);
+    shader->SetVector2("u_res", Vector2(window_width, window_height));
+    mesh->Render();
+    shader->Disable();
 }
 
 void Application::Update(float seconds_elapsed){
+    time += seconds_elapsed;
     for (auto& e : entities) {e.Update(seconds_elapsed);} // LAB 2
 }
 

@@ -9,6 +9,7 @@
 #include "button.h"
 #include "particle.h"
 #include "entity.h"
+#include "shader.h"
 
 class Application
 {
@@ -81,4 +82,7 @@ public:
 
     // LAB 3 - triangular meshes
     FloatImage z_buffer;
+
+    // LAB 4 - shader
+    Shader* shader = nullptr;
 };
