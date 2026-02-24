@@ -114,7 +114,30 @@ void Application::OnMouseMove(SDL_MouseMotionEvent event) {
 void Application::OnKeyPressed(SDL_KeyboardEvent event)
 {
     switch(event.keysym.sym) {
+        // LAB 4 - task selection
+        case SDLK_1: current_task = 1; break;
+        case SDLK_2: current_task = 2; break;
+        case SDLK_3: current_task = 3; break;
+        case SDLK_4: current_task = 4; break;
+
+        // LAB 4 - subtask selection
+        case SDLK_a: current_subtask = 0; break;
+        case SDLK_b: current_subtask = 1; break;
+        case SDLK_c: current_subtask = 2; break;
+        case SDLK_d: current_subtask = 3; break;
+        case SDLK_e: current_subtask = 4; break;
+        case SDLK_f: current_subtask = 5; break;
+
+        // LAB 4 & 5 - switch lab
+        case SDLK_l:
+            is_lab5 = !is_lab5;
+            break;
+
+
+        /*
+        
         // case SDLK_ESCAPE: exit(0); break;
+        
         case SDLK_1: 
             one_entity = true; 
             // Reset
@@ -164,8 +187,10 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
                 else { e.mode = Entity::eRenderMode::WIREFRAME; }
             }
             break;
+        camera.SetPerspective(camera_fov, window_width / (float)window_height, camera_near, camera_far);
+        */
     }
-    camera.SetPerspective(camera_fov, window_width / (float)window_height, camera_near, camera_far);
+    
 }
 
 void Application::OnWheel(SDL_MouseWheelEvent event) {
