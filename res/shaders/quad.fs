@@ -19,7 +19,8 @@ void main()
             vec3 colorEnd = vec3(1.0, 0.0, 0.0);
             color = mix(colorStart, colorEnd, v_uv.x);
         }
-        // 1.b gradient circle 
+
+        // 1.b - gradient circle 
         else if (u_subtask == 1) {
             vec2 p = (v_uv - 0.5);
             p.x *= aspect;
@@ -28,82 +29,70 @@ void main()
             color = vec3(step(0.3, dist));
             color = vec3(clamp(gradient, 0.0, 1.0));
         }
-        // 1.c stripes
+
+        // 1.c - stripes
         else if (u_subtask == 2 ) {
-            // We create a pattern for each type of stripes
+            // Pattern for each type of stripes
             float local_x = mod(v_uv.x * 5.0, 1.0);
             float local_y = mod(v_uv.y * 4.0, 1.0);
-            // We define the center and the thickness of the lines
             float thickness = 0.04; 
             float blur = 0.1;
-
-            // We calculate the distance from the current pixel to the center line
+            // Distance
             float dist_x = abs(local_x - 0.5);
             float dist_y = abs(local_y - 0.5);
-
-            // We make a smooth step 
+            // Smooth step 
             float red_mask = 1.0 - smoothstep(thickness, thickness + blur, dist_x);
             float blue_mask = 1.0 - smoothstep(thickness, thickness + blur, dist_y);
-            // We set the color
+
             color = vec3(red_mask, 0.0, blue_mask);
         }
-        // 1.d radial gradient
+
+        // 1.d - radial gradient
         else if (u_subtask == 3) {
             // Set up grid
             vec2 p = v_uv * 10;
             p.x *= aspect; // adapt dimensions
             vec2 grid = floor(p); // We use floor to find which square we are in
-            
-            // 3. Normalize the coordinates back to 0.0-1.0 range 
-            // but keep the 'stepped' grid values for the colors
+            // Normalize coordinates 
             float color_x = grid.x / (10.0 * aspect);
             float color_y = grid.y / 10;
-
             // Define corner colors
-            vec3 topLeft     = vec3(0.0, 1.0, 0.0);
-            vec3 topRight    = vec3(1.0, 1.0, 0.0);
-            vec3 bottomLeft  = vec3(0.0, 0.0, 0.0);
+            vec3 topLeft = vec3(0.0, 1.0, 0.0);
+            vec3 topRight = vec3(1.0, 1.0, 0.0);
+            vec3 bottomLeft = vec3(0.0, 0.0, 0.0);
             vec3 bottomRight = vec3(1.0, 0.0, 0.0);
-
-            // Mix based on position
+            // Mix 
             vec3 colorBottom = mix(bottomLeft, bottomRight, clamp(color_x, 0.0, 1.0));
-            vec3 colorTop    = mix(topLeft, topRight, clamp(color_x, 0.0, 1.0));
+            vec3 colorTop = mix(topLeft, topRight, clamp(color_x, 0.0, 1.0));
             
             color = mix(colorBottom, colorTop, clamp(color_y, 0.0, 1.0));
 
         }
 
-        // 1.e grid
+        // 1.e - grid
         else if (u_subtask == 4) {
             vec2 p = v_uv * 10;
             p.x *= aspect; // adapt dimensions
             vec2 grid = floor(p);
             float check = mod(grid.x + grid.y, 2.0);
-            
-            // Mix two colors
+
             color = vec3(check);
         }
 
-        // 1.f - sinusoid (does not work yet)
+        // 1.f - sinusoid
         else if (u_subtask == 5) {
-            // 1. Define the "offset" or "bend" of the wave
-            // This creates the wavy shape horizontally
-            float wave_offset = sin(v_uv.x * 6.28) * 0.2;
+            // Sine wave
+            float wave = sin(v_uv.x * 6) * 0.3 + 0.5;
+            // Top gradient
+            float grad_top = 1.0 - v_uv.y;
+            vec3 colorTop = vec3(0.0, grad_top, 0.0);
+            // Bottom gradient 
+            float grad_bottom = v_uv.y;
+            vec3 colorBottom = vec3(0.0, grad_bottom, 0.0);
+            // Split 
+            float isAbove = step(wave, v_uv.y);
 
-            // 2. Shift the Y coordinate by that wave amount
-            // This "pushes" the color up and down based on X
-            float shifted_y = v_uv.y + wave_offset;
-
-            // 3. Create a smooth gradient centered at 0.5
-            // It gets greener as it approaches the (wavy) center
-            float dist_from_center = abs(shifted_y - 0.5);
-            
-            // 4. Calculate the green intensity
-            // 1.0 at the wavy center, fading to 0.0 at the top/bottom
-            float green_intensity = 1.0 - smoothstep(0.0, 0.4, dist_from_center);
-
-            // 5. Final output
-            color = vec3(0.0, green_intensity, 0.0);
+            color = mix(colorBottom, colorTop, isAbove);
         }
     }
 
@@ -118,7 +107,7 @@ void main()
             color = vec3(gray);
         }
 
-        // 2.b - inversion
+        // 2.b - color inversion
         else if (u_subtask == 1) {
             color = 1.0 - color;
         }
@@ -139,21 +128,17 @@ void main()
 
         // 2.e - vignette
         else if (u_subtask == 4) {
-            // Calculate distance from center (0.5, 0.5)
+            // Distance 
             float dist = distance(v_uv, vec2(0.5));
-            // Darken the edges based on distance
+            // Darken edges
             color *= smoothstep(0.6, 0.05, dist);
         }
         
         // 2.f - blur (3x3 box blur)
         else if (u_subtask == 5) {
-            // Increase this number to make the blur stronger (e.g., 4.0 or 8.0)
-            float blurAmount = 5.0; 
-            vec2 texelSize = vec2(blurAmount) / u_res; 
-            
+            vec2 texelSize = vec2(5) / u_res; 
             vec3 sum = vec3(0.0);
-            
-            // Sample 9 points around the current pixel
+            // Sample 9 points around current pixel
             sum += texture2D(u_tex, v_uv + vec2(-1.0,  1.0) * texelSize).rgb;
             sum += texture2D(u_tex, v_uv + vec2( 0.0,  1.0) * texelSize).rgb;
             sum += texture2D(u_tex, v_uv + vec2( 1.0,  1.0) * texelSize).rgb;
