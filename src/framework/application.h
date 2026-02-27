@@ -86,6 +86,9 @@ public:
     // LAB 4 - shader
     Shader* shader = nullptr;
 
+    // LAB 4 - 2.3 image filters
+    Texture* fruitsImage;
+
     // LAB 4 & 5 - interactivity
     int current_task = 1;    // For "1" to "4"
     int current_subtask = 0; // For "a" to "f"

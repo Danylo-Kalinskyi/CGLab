@@ -54,6 +54,9 @@ void Application::Init(void) {
     }    
     */
 
+    // Lab 4 - 2.3 image filters
+    fruitsImage = Texture::Get("images/fruits.png");
+
 }
 
 void Application::Render(){
@@ -66,6 +69,8 @@ void Application::Render(){
     // interactivity variables
     shader->SetInt("u_task", current_task);
     shader->SetInt("u_subtask", current_subtask);
+    fruitsImage->Bind(); 
+    shader->SetInt("u_tex", 0);
     mesh->Render();
     shader->Disable();
 }
@@ -119,10 +124,10 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
 {
     switch(event.keysym.sym) {
         // LAB 4 - task selection
-        case SDLK_1: current_task = 1; break;
-        case SDLK_2: current_task = 2; break;
-        case SDLK_3: current_task = 3; break;
-        case SDLK_4: current_task = 4; break;
+        case SDLK_1: current_task = 1; current_subtask = 0; break;
+        case SDLK_2: current_task = 2; current_subtask = 0; break;
+        case SDLK_3: current_task = 3; current_subtask = 0; break;
+        case SDLK_4: current_task = 4; current_subtask = 0; break;
 
         // LAB 4 - subtask selection
         case SDLK_a: current_subtask = 0; break;
@@ -135,6 +140,7 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
         // LAB 4 & 5 - switch lab
         case SDLK_l:
             is_lab5 = !is_lab5;
+            //current_task = 1; current_subtask = 0;
             break;
 
 
