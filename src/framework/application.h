@@ -63,14 +63,7 @@ public:
         return Vector2(float(w), float(h));
     }
 
-    // LAB 2 - objects (entities) 
-    std::vector<Entity> entities;
-    Mesh* mesh = nullptr;
-    bool one_entity = false; // Initially, we draw 3 entities
-    float total_pitch = 0.0;
-    float yaw = 0.0;
-    float pitch = 0.0;
-    float distance = 5.0; // Distance from center to eye
+    
 
     // LAB 2 - camera control
     Camera camera;
@@ -85,14 +78,26 @@ public:
     // LAB 3 - triangular meshes
     FloatImage z_buffer;
 
-    // LAB 4 - shader
-    Shader* shader = nullptr;
+    // LAB 4 - 2.2 quad and shader
+    Mesh* meshQuad = nullptr;
+    Shader* shaderQuad = nullptr;
 
     // LAB 4 - 2.3 image filters
     Texture* fruitsImage;
 
+    // LAB 4 - 2.5 entities 
+    std::vector<Entity> entities;
+    Mesh* meshLee = nullptr;
+    Texture* TexLee;
+    Shader* rasterShader;
+    // bool one_entity = false; // Initially, we draw 3 entities
+    float total_pitch = 0.0;
+    float yaw = 0.0;
+    float pitch = 0.0;
+    float distance = 5.0; // Distance from center to eye
+
     // LAB 4 & 5 - interactivity
-    int current_task = 1;    // For "1" to "4"
-    int current_subtask = 0; // For "a" to "f"
+    int u_task = 1;    // For "1" to "4"
+    int u_subtask = 0; // For "a" to "f"
     bool is_lab5 = false;    // For "L"
 };

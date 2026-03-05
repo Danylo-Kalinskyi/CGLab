@@ -19,11 +19,6 @@ public:
     Texture* gpu_texture = nullptr; 
     void Render(Camera* camera);
 
-    // Randomly assign an animation type
-    // enum AnimationType { ROTATE, SCALE, TRANSLATE } animType;
-    // Vector3 animAxis;
-    // float animSpeed;
-
     Entity();
     void Init(Mesh* m);
     // void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer);

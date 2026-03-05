@@ -11,16 +11,16 @@ void main()
     float aspect = u_res.x / u_res.y;
 
     // TASK 2
-    if (u_task == 2) {
+    if (u_task == 1) {
 
-        // 2.a - gradient
+        // 1a - gradient
         if (u_subtask == 0) {
             vec3 colorStart = vec3(0.0, 0.0, 1.0); 
             vec3 colorEnd = vec3(1.0, 0.0, 0.0);
             color = mix(colorStart, colorEnd, v_uv.x);
         }
 
-        // 2.b - gradient circle 
+        // 1.b - gradient circle 
         else if (u_subtask == 1) {
             vec2 p = (v_uv - 0.5);
             p.x *= aspect;
@@ -30,7 +30,7 @@ void main()
             color = vec3(clamp(gradient, 0.0, 1.0));
         }
 
-        // 2.c - stripes
+        // 1.c - stripes
         else if (u_subtask == 2 ) {
             // Pattern for each type of stripes
             float local_x = mod(v_uv.x * 5.0, 1.0);
@@ -47,7 +47,7 @@ void main()
             color = vec3(red_mask, 0.0, blue_mask);
         }
 
-        // 2.d - radial gradient
+        // 1.d - radial gradient
         else if (u_subtask == 3) {
             // Set up grid
             vec2 p = v_uv * 10.0;
@@ -69,7 +69,7 @@ void main()
 
         }
 
-        // 2.e - grid
+        // 1.e - grid
         else if (u_subtask == 4) {
             vec2 p = v_uv * 10.0;
             p.x *= aspect; // adapt dimensions
@@ -79,7 +79,7 @@ void main()
             color = vec3(check);
         }
 
-        // 2.f - sinusoid
+        // 1.f - sinusoid
         else if (u_subtask == 5) {
             // Sine wave
             float wave = sin(v_uv.x * 6.0) * 0.3 + 0.5;
@@ -97,22 +97,22 @@ void main()
     }
 
     // TASK 3
-    else if (u_task == 3) {
+    else if (u_task == 2) {
         vec4 texture_color = texture2D( u_tex, v_uv);
         color = texture_color.rgb;
 
-        // 3.a - greyscale
+        // 2.a - greyscale
         if (u_subtask == 0) {
             float gray = dot(color, vec3(0.299, 0.587, 0.114));
             color = vec3(gray);
         }
 
-        // 3.b - color inversion
+        // 2.b - color inversion
         else if (u_subtask == 1) {
             color = 1.0 - color;
         }
 
-        // 3.c - yellow
+        // 2.c - yellow
         else if (u_subtask == 2) {
             float r = dot(color, vec3(0.45, 0.85, 0.20));
             float g = dot(color, vec3(0.40, 0.80, 0.15));
@@ -120,13 +120,13 @@ void main()
             color = vec3(r, g, b);
         }
 
-        // 3.d - black and white
+        // 2.d - black and white
         else if (u_subtask == 3) {
             float brightness = dot(color, vec3(0.333));
             color = vec3(step(0.5, brightness));
         }
 
-        // 3.e - vignette
+        // 2.e - vignette
         else if (u_subtask == 4) {
             // Distance 
             float dist = distance(v_uv, vec2(0.5));
@@ -134,7 +134,7 @@ void main()
             color *= smoothstep(0.6, 0.05, dist);
         }
         
-        // 3.f - blur (3x3 box blur)
+        // 2.f - blur (3x3 box blur)
         else if (u_subtask == 5) {
             vec2 texelSize = vec2(5) / u_res; 
             vec3 sum = vec3(0.0);
@@ -152,8 +152,8 @@ void main()
             color = sum / 9.0;
         }
     }
-    // TASK 4
-    else if (u_task == 4) {
+    // TASK 3
+    else if (u_task == 3) {
         vec2 uv = v_uv;
 
         // 3.a animated rotation

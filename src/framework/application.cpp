@@ -32,76 +32,70 @@ void Application::Init(void) {
     // Seed random generator
     std::srand(std::time(nullptr));
    
-    // LAB 4 - create quad mesh and load shaders
-    mesh = new Mesh();
-    mesh->CreateQuad();
-    shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
+    // LAB 4 - 2.1 create quad mesh and load shaders
+    meshQuad = new Mesh();
+    meshQuad->CreateQuad();
+    shaderQuad = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
 
     /*
     // LAB 2 - Position the camera so the mesh is visible
     camera.SetOrthographic(-1,1,1,-1,-1,1);
     camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
-    camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
-
-    // LAB 2 - Initiate mesh and 3 entities
-    mesh = new Mesh();
-    mesh->LoadOBJ("meshes/lee.obj");
-
-    for (int i = 0; i < 3; ++i){
-        Entity e;
-        e.Init(mesh);
-        entities.push_back(e);
-    }    
+    camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0)); 
     */
 
-    // Lab 4 - 2.3 image filters
+    // LAB 4 - 2.3 image filters
     fruitsImage = Texture::Get("images/fruits.png");
 
-    // 2.5 mesh and GPU texture
-    mesh = new Mesh();
-    mesh->LoadOBJ("meshes/lee.obj");
-    Texture* leeTex = Texture::Get("textures/lee_color_specular.tga");
-    Shader* rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+    // LAB 4 - 2.5 mesh and GPU texture
+    meshLee = new Mesh();
+    meshLee->LoadOBJ("meshes/lee.obj");
+    TexLee = Texture::Get("textures/lee_color_specular.tga");
+    rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
 
-    // entities
+    // LAB 4 - 2.5 entities
     for (int i = 0; i < 3; ++i) {
         Entity e;
-        e.Init(mesh);
+        e.Init(meshLee);
         e.shader = rasterShader;
-        e.gpu_texture = leeTex;
+        e.gpu_texture = TexLee;
         entities.push_back(e);
     }
 }
 
-void Application::Render(){
-    // glClearColor(0, 0, 0, 1);
-    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    // if (!shader) { return; }
-    // shader->Enable();
-    // shader->SetFloat("u_time", time);
-    // shader->SetVector2("u_res", Vector2(window_width, window_height));
-    // // interactivity variables
-    // shader->SetInt("u_task", current_task);
-    // shader->SetInt("u_subtask", current_subtask);
-    // fruitsImage->Bind(); 
-    // shader->SetInt("u_tex", 0);
-    // mesh->Render();
-    // shader->Disable();
-
+void Application::Render(){ // LAB 4
     // Clear buffers
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // IMPORTANT: Enable Depth Test for correct occlusions
-    glEnable(GL_DEPTH_TEST);
-
-    // Render all entities
-    for (auto& e : entities) {
-        e.Render(&camera);
+    if ((!is_lab5) && (u_task != 4)) {
+        if (!shaderQuad) { return; }
+        shaderQuad->Enable();
+        shaderQuad->SetFloat("u_time", time);
+        shaderQuad->SetVector2("u_res", Vector2(window_width, window_height));
+        // interactivity variables
+        shaderQuad->SetInt("u_task", u_task);
+        shaderQuad->SetInt("u_subtask", u_subtask);
+        fruitsImage->Bind();
+        shaderQuad->SetInt("u_tex", 0);
+        meshQuad->Render();
+        shaderQuad->Disable();
     }
+    else {
+        // IMPORTANT: Enable Depth Test for correct occlusions
+        glEnable(GL_DEPTH_TEST);
+        rasterShader->Enable();
+        rasterShader->SetMatrix44("u_viewprojection", camera.viewprojection_matrix);
+        rasterShader->SetTexture("u_texture", TexLee);
+        // Render all entities
+        for (auto& e : entities) {
+            rasterShader->SetMatrix44("u_model", e.model);
+            e.Render(&camera);
+        }
 
-    // Disable depth test if you plan to draw 2D UI/Quads later
-    glDisable(GL_DEPTH_TEST);
+        // Disable depth test if you plan to draw 2D UI/Quads later
+        // glDisable(GL_DEPTH_TEST);
+        rasterShader->Disable();
+    }
 }
 
 void Application::Update(float seconds_elapsed){
@@ -152,19 +146,20 @@ void Application::OnMouseMove(SDL_MouseMotionEvent event) {
 void Application::OnKeyPressed(SDL_KeyboardEvent event)
 {
     switch(event.keysym.sym) {
+        case SDLK_ESCAPE: exit(0); break; 
         // LAB 4 - task selection
-        case SDLK_1: current_task = 1; current_subtask = 0; break;
-        case SDLK_2: current_task = 2; current_subtask = 0; break;
-        case SDLK_3: current_task = 3; current_subtask = 0; break;
-        case SDLK_4: current_task = 4; current_subtask = 0; break;
+        case SDLK_1: u_task = 1; u_subtask = 0; break;
+        case SDLK_2: u_task = 2; u_subtask = 0; break;
+        case SDLK_3: u_task = 3; u_subtask = 0; break;
+        case SDLK_4: u_task = 4; u_subtask = 0; break;
 
         // LAB 4 - subtask selection
-        case SDLK_a: current_subtask = 0; break;
-        case SDLK_b: current_subtask = 1; break;
-        case SDLK_c: current_subtask = 2; break;
-        case SDLK_d: current_subtask = 3; break;
-        case SDLK_e: current_subtask = 4; break;
-        case SDLK_f: current_subtask = 5; break;
+        case SDLK_a: u_subtask = 0; break;
+        case SDLK_b: u_subtask = 1; break;
+        case SDLK_c: u_subtask = 2; break;
+        case SDLK_d: u_subtask = 3; break;
+        case SDLK_e: u_subtask = 4; break;
+        case SDLK_f: u_subtask = 5; break;
 
         // LAB 4 & 5 - switch lab
         case SDLK_l:
@@ -174,8 +169,6 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
 
 
         /*
-        
-        // case SDLK_ESCAPE: exit(0); break;
         
         case SDLK_1: 
             one_entity = true; 
