@@ -31,18 +31,17 @@ void Application::Init(void) {
 
     // Seed random generator
     std::srand(std::time(nullptr));
+
+    // LAB 2 - Position the camera so the mesh is visible
+    // camera.SetOrthographic(-1, 1, 1, -1, -1, 1);
+    camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
+    camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
+    camera.UpdateViewMatrix();
    
     // LAB 4 - 2.1 create quad mesh and load shaders
     meshQuad = new Mesh();
     meshQuad->CreateQuad();
     shaderQuad = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
-
-    /*
-    // LAB 2 - Position the camera so the mesh is visible
-    camera.SetOrthographic(-1,1,1,-1,-1,1);
-    camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
-    camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0)); 
-    */
 
     // LAB 4 - 2.3 image filters
     fruitsImage = Texture::Get("images/fruits.png");
@@ -50,15 +49,13 @@ void Application::Init(void) {
     // LAB 4 - 2.5 mesh and GPU texture
     meshLee = new Mesh();
     meshLee->LoadOBJ("meshes/lee.obj");
-    TexLee = Texture::Get("textures/lee_color_specular.tga");
     rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+    texLee = Texture::Get("textures/lee_color_specular.tga");
 
     // LAB 4 - 2.5 entities
     for (int i = 0; i < 3; ++i) {
         Entity e;
-        e.Init(meshLee);
-        e.shader = rasterShader;
-        e.gpu_texture = TexLee;
+        e.Init(meshLee, rasterShader, texLee);
         entities.push_back(e);
     }
 }
@@ -75,32 +72,49 @@ void Application::Render(){ // LAB 4
         // interactivity variables
         shaderQuad->SetInt("u_task", u_task);
         shaderQuad->SetInt("u_subtask", u_subtask);
+        if (!fruitsImage) { return; }
         fruitsImage->Bind();
         shaderQuad->SetInt("u_tex", 0);
         meshQuad->Render();
         shaderQuad->Disable();
     }
+    /*
     else {
         // IMPORTANT: Enable Depth Test for correct occlusions
         glEnable(GL_DEPTH_TEST);
+        if (!rasterShader) { return; }
         rasterShader->Enable();
         rasterShader->SetMatrix44("u_viewprojection", camera.viewprojection_matrix);
-        rasterShader->SetTexture("u_texture", TexLee);
+        if (!texLee) { return; }
+        texLee->Bind();      
+        rasterShader->SetInt("u_texture", 0);
         // Render all entities
         for (auto& e : entities) {
             rasterShader->SetMatrix44("u_model", e.model);
             e.Render(&camera);
         }
-
         // Disable depth test if you plan to draw 2D UI/Quads later
         // glDisable(GL_DEPTH_TEST);
         rasterShader->Disable();
+    }
+    */
+    else { 
+        // IMPORTANT: Enable Depth Test for correct occlusions
+        glEnable(GL_DEPTH_TEST);
+        rasterShader->Enable();
+        // Render all entities
+        for (auto& e : entities) {
+            e.Render(&camera);
+        }
+        rasterShader->Disable();
+        // Disable depth test if you plan to draw 2D UI/Quads later
+        glDisable(GL_DEPTH_TEST);
+        
     }
 }
 
 void Application::Update(float seconds_elapsed){
     time += seconds_elapsed;
-    // for (auto& e : entities) {e.Update(seconds_elapsed);} // LAB 2
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event){

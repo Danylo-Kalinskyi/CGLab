@@ -13,14 +13,9 @@ public:
     Vector3 translation = (0, 0, 0);
     Vector3 scale = Vector3(1, 1, 1);
     Color color;
-    
-    // Lab 4
-    Shader* shader = nullptr;
-    Texture* gpu_texture = nullptr; 
-    void Render(Camera* camera);
 
     Entity();
-    void Init(Mesh* m);
+    void Init(Mesh* m, Shader* shader, Texture* gpu_texture);
     // void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer);
     // void Update(float dt);
     // void RandomAnim();
@@ -35,4 +30,9 @@ public:
     bool useTexture = true;
     bool useOcclusion = true;
     bool interpolateUVs = true;
+
+    // LAB 4 - 2.5
+    Shader* shader = nullptr;
+    Texture* gpu_texture = nullptr;
+    void Render(Camera* camera);
 };

@@ -7,17 +7,20 @@ Entity::Entity() {
     model.SetIdentity();
 }
 
-void Entity::Init(Mesh* m) {
+void Entity::Init(Mesh* m, Shader* s, Texture* t) {
     mesh = m;
-    color = Color(56 + rand() % 200, 56 + rand() % 200, 56 + rand() % 200); // We avoid dark colors for visibility
+    shader = s;
+    gpu_texture = t;
+
+    // color = Color(56 + rand() % 200, 56 + rand() % 200, 56 + rand() % 200); // We avoid dark colors for visibility
+    
     // Random position inside [-2, 2] for x, y and z
     position.x = ((float)rand() / RAND_MAX) * 4 - 2;
     position.y = ((float)rand() / RAND_MAX) * 4 - 2;
     position.z = ((float)rand() / RAND_MAX) * 4 - 2;
-    // RandomAnim();
-    // we load the texture
-    texture = new Image();
-    texture->LoadTGA("textures/lee_color_specular.tga", true);
+
+    model.SetIdentity();
+    model.MakeTranslationMatrix(position.x, position.y, position.z);
 }
 
 // void Entity::Update(float dt) {
@@ -47,8 +50,6 @@ void Entity::Init(Mesh* m) {
 void Entity::Render(Camera* camera) {
     if (!mesh || !shader) return;
 
-    shader->Enable();
-
     // pass matrices
     shader->SetMatrix44("u_model", model);
     shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
@@ -58,11 +59,9 @@ void Entity::Render(Camera* camera) {
         gpu_texture->Bind();
         shader->SetInt("u_texture", 0); // Texture unit 0
     }
-
     // Tell the mesh to draw itself using the currently enabled shader
     mesh->Render();
 
-    shader->Disable();
 }
 
 // void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer) {

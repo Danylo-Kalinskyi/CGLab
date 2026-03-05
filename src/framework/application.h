@@ -88,7 +88,7 @@ public:
     // LAB 4 - 2.5 entities 
     std::vector<Entity> entities;
     Mesh* meshLee = nullptr;
-    Texture* TexLee;
+    Texture* texLee;
     Shader* rasterShader;
     // bool one_entity = false; // Initially, we draw 3 entities
     float total_pitch = 0.0;
