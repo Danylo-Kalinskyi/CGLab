@@ -2,6 +2,7 @@
 #include "mesh.h"
 #include "image.h"
 #include "camera.h"
+#include "shader.h"
 
 class Entity {
 public:
@@ -12,17 +13,22 @@ public:
     Vector3 translation = (0, 0, 0);
     Vector3 scale = Vector3(1, 1, 1);
     Color color;
+    
+    // Lab 4
+    Shader* shader = nullptr;
+    Texture* gpu_texture = nullptr; 
+    void Render(Camera* camera);
 
     // Randomly assign an animation type
-    enum AnimationType { ROTATE, SCALE, TRANSLATE } animType;
-    Vector3 animAxis;
-    float animSpeed;
+    // enum AnimationType { ROTATE, SCALE, TRANSLATE } animType;
+    // Vector3 animAxis;
+    // float animSpeed;
 
     Entity();
     void Init(Mesh* m);
-    void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer);
-    void Update(float dt);
-    void RandomAnim();
+    // void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer);
+    // void Update(float dt);
+    // void RandomAnim();
 
     // LAB 3.4
     Image* texture = nullptr;

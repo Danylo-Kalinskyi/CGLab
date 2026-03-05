@@ -57,27 +57,56 @@ void Application::Init(void) {
     // Lab 4 - 2.3 image filters
     fruitsImage = Texture::Get("images/fruits.png");
 
+    // 2.5 mesh and GPU texture
+    mesh = new Mesh();
+    mesh->LoadOBJ("meshes/lee.obj");
+    Texture* leeTex = Texture::Get("textures/lee_color_specular.tga");
+    Shader* rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+
+    // entities
+    for (int i = 0; i < 3; ++i) {
+        Entity e;
+        e.Init(mesh);
+        e.shader = rasterShader;
+        e.gpu_texture = leeTex;
+        entities.push_back(e);
+    }
 }
 
 void Application::Render(){
-    glClearColor(0, 0, 0, 1);
+    // glClearColor(0, 0, 0, 1);
+    // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // if (!shader) { return; }
+    // shader->Enable();
+    // shader->SetFloat("u_time", time);
+    // shader->SetVector2("u_res", Vector2(window_width, window_height));
+    // // interactivity variables
+    // shader->SetInt("u_task", current_task);
+    // shader->SetInt("u_subtask", current_subtask);
+    // fruitsImage->Bind(); 
+    // shader->SetInt("u_tex", 0);
+    // mesh->Render();
+    // shader->Disable();
+
+    // Clear buffers
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (!shader) { return; }
-    shader->Enable();
-    shader->SetFloat("u_time", time);
-    shader->SetVector2("u_res", Vector2(window_width, window_height));
-    // interactivity variables
-    shader->SetInt("u_task", current_task);
-    shader->SetInt("u_subtask", current_subtask);
-    fruitsImage->Bind(); 
-    shader->SetInt("u_tex", 0);
-    mesh->Render();
-    shader->Disable();
+
+    // IMPORTANT: Enable Depth Test for correct occlusions
+    glEnable(GL_DEPTH_TEST);
+
+    // Render all entities
+    for (auto& e : entities) {
+        e.Render(&camera);
+    }
+
+    // Disable depth test if you plan to draw 2D UI/Quads later
+    glDisable(GL_DEPTH_TEST);
 }
 
 void Application::Update(float seconds_elapsed){
     time += seconds_elapsed;
-    for (auto& e : entities) {e.Update(seconds_elapsed);} // LAB 2
+    // for (auto& e : entities) {e.Update(seconds_elapsed);} // LAB 2
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event){
