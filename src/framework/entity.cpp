@@ -9,8 +9,12 @@ Entity::Entity() {
 
 void Entity::Init(Mesh* m, Shader* s, Texture* t) {
     mesh = m;
-    shader = s;
     gpu_texture = t;
+
+    // Create material
+    material = new Material();
+    material->shader = s;
+    material->color_texture = t; // For now, use the same texture as color
 
     // color = Color(56 + rand() % 200, 56 + rand() % 200, 56 + rand() % 200); // We avoid dark colors for visibility
     
@@ -47,21 +51,21 @@ void Entity::Init(Mesh* m, Shader* s, Texture* t) {
 
 // }
 
-void Entity::Render(Camera* camera) {
-    if (!mesh || !shader) return;
+void Entity::Render(const sUniformData& uniformData) {
+    if (!mesh || !material) return;
 
-    // pass matrices
-    shader->SetMatrix44("u_model", model);
-    shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
+    // Update the model matrix in uniformData (copy and modify)
+    sUniformData localUniformData = uniformData;
+    localUniformData.model = model;
 
-    // pass texture
-    if (gpu_texture) {
-        gpu_texture->Bind();
-        shader->SetInt("u_texture", 0); // Texture unit 0
-    }
+    // Enable material (this will enable shader and upload uniforms)
+    material->Enable(localUniformData);
+
     // Tell the mesh to draw itself using the currently enabled shader
     mesh->Render();
 
+    // Disable material
+    material->Disable();
 }
 
 // void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer) {

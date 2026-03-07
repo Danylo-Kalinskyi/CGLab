@@ -35,8 +35,14 @@ void Application::Init(void) {
     // LAB 2 - Position the camera so the mesh is visible
     // camera.SetOrthographic(-1, 1, 1, -1, -1, 1);
     camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
-    camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
+    camera.LookAt(Vector3(0, 1, 2), Vector3(0, 0, 0), Vector3(0, 1, 0)); // Closer to the single mesh
     camera.UpdateViewMatrix();
+    
+    // Initialize camera control variables to match the initial setup
+    Vector3 initial_offset = camera.eye - camera.center;
+    distance = initial_offset.Length();
+    yaw = atan2(initial_offset.x, initial_offset.z);
+    pitch = asin(initial_offset.y / distance);
    
     // LAB 4 - 2.1 create quad mesh and load shaders
     meshQuad = new Mesh();
@@ -52,11 +58,46 @@ void Application::Init(void) {
     rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
     texLee = Texture::Get("textures/lee_color_specular.tga");
 
+    // LAB 5 - Load additional textures and shaders
+    Shader* gouraudShader = Shader::Get("shaders/gouraud.vs", "shaders/gouraud.fs");
+    Shader* phongShader = Shader::Get("shaders/phong.vs", "shaders/phong.fs");
+    Texture* texLeeNormal = Texture::Get("textures/lee_normal.tga");
+
     // LAB 4 - 2.5 entities
-    for (int i = 0; i < 3; ++i) {
-        Entity e;
-        e.Init(meshLee, rasterShader, texLee);
-        entities.push_back(e);
+    Entity e;
+    e.Init(meshLee, phongShader, texLee); // Use Phong shader by default
+    // Set up material with textures
+    if (e.material) {
+        e.material->color_texture = texLee;
+        e.material->specular_texture = texLee; // Same texture contains specular in alpha
+        e.material->normal_texture = texLeeNormal;
+    }
+    // Position the single mesh closer to camera
+    e.position = Vector3(0.0f, 0.0f, 0.0f);
+    e.model.SetIdentity();
+    e.model.MakeTranslationMatrix(0.0f, 0.0f, 0.0f);
+    entities.push_back(e);
+
+    // LAB 5 - Initialize lighting
+    uniformData.ambient_light = ambient_light;
+    uniformData.num_lights = num_lights;
+    uniformData.use_color_texture = use_color_texture;
+    uniformData.use_specular_texture = use_specular_texture;
+    uniformData.use_normal_texture = use_normal_texture;
+
+    // Set up lights
+    lights[0].position = Vector3(5.0f, 5.0f, 5.0f);
+    lights[0].color = Vector3(1.0f, 1.0f, 1.0f);
+    lights[1].position = Vector3(-5.0f, 5.0f, -5.0f);
+    lights[1].color = Vector3(1.0f, 0.5f, 0.5f);
+    lights[2].position = Vector3(0.0f, -5.0f, 5.0f);
+    lights[2].color = Vector3(0.5f, 1.0f, 0.5f);
+    lights[3].position = Vector3(5.0f, -5.0f, -5.0f);
+    lights[3].color = Vector3(0.5f, 0.5f, 1.0f);
+    lights[4].position = Vector3(-5.0f, -5.0f, 5.0f);
+    lights[4].color = Vector3(1.0f, 1.0f, 0.5f);
+    for (int i = 0; i < 10; ++i) {
+        uniformData.lights[i] = lights[i];
     }
 }
 
@@ -101,12 +142,37 @@ void Application::Render(){ // LAB 4
     else { 
         // IMPORTANT: Enable Depth Test for correct occlusions
         glEnable(GL_DEPTH_TEST);
-        rasterShader->Enable();
-        // Render all entities
-        for (auto& e : entities) {
-            e.Render(&camera);
+
+        // Update uniform data
+        uniformData.viewprojection = camera.viewprojection_matrix;
+        uniformData.eye = camera.eye;
+        uniformData.ambient_light = ambient_light;
+        uniformData.use_color_texture = use_color_texture;
+        uniformData.use_specular_texture = use_specular_texture;
+        uniformData.use_normal_texture = use_normal_texture;
+
+        // Multipass rendering for multiple lights
+        for (int light_index = 0; light_index < num_lights; ++light_index) {
+            // Set up blending for additional lights
+            if (light_index > 0) {
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_ONE, GL_ONE); // Additive blending
+            }
+
+            // Update uniform data for this light
+            uniformData.num_lights = 1; // Only one light per pass
+            uniformData.lights[0] = lights[light_index];
+
+            // Render all entities with this light
+            for (auto& e : entities) {
+                e.Render(uniformData);
+            }
+
+            if (light_index > 0) {
+                glDisable(GL_BLEND);
+            }
         }
-        rasterShader->Disable();
+
         // Disable depth test if you plan to draw 2D UI/Quads later
         glDisable(GL_DEPTH_TEST);
         
@@ -159,84 +225,81 @@ void Application::OnMouseMove(SDL_MouseMotionEvent event) {
 
 void Application::OnKeyPressed(SDL_KeyboardEvent event)
 {
-    switch(event.keysym.sym) {
-        case SDLK_ESCAPE: exit(0); break; 
-        // LAB 4 - task selection
-        case SDLK_1: u_task = 1; u_subtask = 1; break;
-        case SDLK_2: u_task = 2; u_subtask = 1; break;
-        case SDLK_3: u_task = 3; u_subtask = 1; break;
-        case SDLK_4: u_task = 4; u_subtask = 1; break;
-
-        // LAB 4 - subtask selection
-        case SDLK_a: u_subtask = 1; break;
-        case SDLK_b: u_subtask = 2; break;
-        case SDLK_c: u_subtask = 3; break;
-        case SDLK_d: u_subtask = 4; break;
-        case SDLK_e: u_subtask = 5; break;
-        case SDLK_f: u_subtask = 6; break;
-
-        // LAB 4 & 5 - switch lab
-        case SDLK_l:
-            is_lab5 = !is_lab5;
-            //current_task = 1; current_subtask = 0;
-            break;
-
-
-        /*
-        
-        case SDLK_1: 
-            one_entity = true; 
-            // Reset
-            if (!entities.empty()) {
-                entities.resize(1); // remove extras 
-                entities[0].Init(mesh); // reset first entity
-            }
-            break; // draw single entity
-        case SDLK_2: 
-            one_entity = false; 
-            // Reset
-            for (auto& e : entities) e.Init(mesh);
-            while ((int)entities.size() < 3) {   // 3 entities
-                Entity e;
-                e.Init(mesh);
-                entities.push_back(e);
-            }
-            break; // draw multiple animated entities
-        case SDLK_n: current_property = C_NEAR; break; // set current property to camera near
-        case SDLK_f: current_property = C_FAR; break; // set current property to camera far
-        case SDLK_v: current_property = C_FOV; break; // set current property to FOV
-        case SDLK_PLUS: 
-            if (current_property == C_NEAR) camera_near += 0.1;
-            else if (current_property == C_FAR) camera_far += 0.1;
-            else if (current_property == C_FOV) camera_fov += 1.0;
-            break; // increase current property
-        case SDLK_MINUS: 
-            if (current_property == C_NEAR) camera_near -= 0.1;
-            else if (current_property == C_FAR) camera_far -= 0.1;
-            else if (current_property == C_FOV) camera_fov -= 1.0;
-            break; // decrease current property
-        case SDLK_t: // texture
-            for (auto& e : entities) e.useTexture = !e.useTexture;
-            break;
-
-        case SDLK_z: // Toggle Z-buffer
-            for (auto& e : entities) e.useOcclusion = !e.useOcclusion;
-            break;
-
-        case SDLK_c: // Toggle UV interpolation
-            for (auto& e : entities) e.interpolateUVs = !e.interpolateUVs;
-            break;
-
-        case SDLK_w: // Toggle wireframe / filled
+    // LAB 4 & 5 - switch lab
+    if (event.keysym.sym == SDLK_l) {
+        is_lab5 = !is_lab5;
+        // Reset to Phong shader when switching to Lab 5
+        if (is_lab5) {
+            Shader* phongShader = Shader::Get("shaders/phong.vs", "shaders/phong.fs");
             for (auto& e : entities) {
-                if (e.mode == Entity::eRenderMode::WIREFRAME) { e.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED; }
-                else { e.mode = Entity::eRenderMode::WIREFRAME; }
+                if (e.material) {
+                    e.material->shader = phongShader;
+                }
             }
-            break;
-        camera.SetPerspective(camera_fov, window_width / (float)window_height, camera_near, camera_far);
-        */
+        }
+        return;
     }
-    
+
+    if (event.keysym.sym == SDLK_ESCAPE) {
+        exit(0);
+        return;
+    }
+
+    if (is_lab5) {
+        // LAB 5 - Lighting controls
+        switch(event.keysym.sym) {
+            case SDLK_g: // Gouraud shading
+                {
+                    Shader* gouraudShader = Shader::Get("shaders/gouraud.vs", "shaders/gouraud.fs");
+                    for (auto& e : entities) {
+                        if (e.material) {
+                            e.material->shader = gouraudShader;
+                        }
+                    }
+                }
+                break;
+            case SDLK_p: // Phong shading
+                {
+                    Shader* phongShader = Shader::Get("shaders/phong.vs", "shaders/phong.fs");
+                    for (auto& e : entities) {
+                        if (e.material) {
+                            e.material->shader = phongShader;
+                        }
+                    }
+                }
+                break;
+            case SDLK_c: // Toggle color texture
+                use_color_texture = !use_color_texture;
+                break;
+            case SDLK_s: // Toggle specular texture
+                use_specular_texture = !use_specular_texture;
+                break;
+            case SDLK_n: // Toggle normal texture
+                use_normal_texture = !use_normal_texture;
+                break;
+            case SDLK_1: num_lights = 1; break;
+            case SDLK_2: num_lights = 2; break;
+            case SDLK_3: num_lights = 3; break;
+            case SDLK_4: num_lights = 4; break;
+            case SDLK_5: num_lights = 5; break;
+        }
+    } else {
+        // LAB 4 - task selection
+        switch(event.keysym.sym) {
+            case SDLK_1: u_task = 1; u_subtask = 1; break;
+            case SDLK_2: u_task = 2; u_subtask = 1; break;
+            case SDLK_3: u_task = 3; u_subtask = 1; break;
+            case SDLK_4: u_task = 4; u_subtask = 1; break;
+
+            // LAB 4 - subtask selection
+            case SDLK_a: u_subtask = 1; break;
+            case SDLK_b: u_subtask = 2; break;
+            case SDLK_c: u_subtask = 3; break;
+            case SDLK_d: u_subtask = 4; break;
+            case SDLK_e: u_subtask = 5; break;
+            case SDLK_f: u_subtask = 6; break;
+        }
+    }
 }
 
 void Application::OnWheel(SDL_MouseWheelEvent event) {

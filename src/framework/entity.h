@@ -3,6 +3,7 @@
 #include "image.h"
 #include "camera.h"
 #include "shader.h"
+#include "material.h"
 
 class Entity {
 public:
@@ -34,5 +35,9 @@ public:
     // LAB 4 - 2.5
     Shader* shader = nullptr;
     Texture* gpu_texture = nullptr;
-    void Render(Camera* camera);
+
+    // LAB 5 - Material system
+    Material* material = nullptr;
+
+    void Render(const sUniformData& uniformData);
 };

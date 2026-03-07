@@ -10,6 +10,7 @@
 #include "particle.h"
 #include "entity.h"
 #include "shader.h"
+#include "material.h"
 
 class Application
 {
@@ -100,4 +101,13 @@ public:
     int u_task = 1;    // For "1" to "4"
     int u_subtask = 0; // For "a" to "f"
     bool is_lab5 = false;    // For "L"
+
+    // LAB 5 - Lighting system
+    sUniformData uniformData;
+    Vector3 ambient_light = Vector3(0.1f, 0.1f, 0.1f);
+    sLight lights[10];
+    int num_lights = 1;
+    bool use_color_texture = true;
+    bool use_specular_texture = true;
+    bool use_normal_texture = true;
 };
