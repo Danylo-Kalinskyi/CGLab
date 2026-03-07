@@ -11,17 +11,17 @@ void main()
     float aspect = u_res.x / u_res.y;
 
     // TASK 2
-    if (u_task == 1) {
+    if (u_task == 2) {
 
         // 1a - gradient
-        if (u_subtask == 0) {
+        if (u_subtask == 1) {
             vec3 colorStart = vec3(0.0, 0.0, 1.0); 
             vec3 colorEnd = vec3(1.0, 0.0, 0.0);
             color = mix(colorStart, colorEnd, v_uv.x);
         }
 
         // 1.b - gradient circle 
-        else if (u_subtask == 1) {
+        else if (u_subtask == 2) {
             vec2 p = (v_uv - 0.5);
             p.x *= aspect;
             float dist = length(p);
@@ -31,7 +31,7 @@ void main()
         }
 
         // 1.c - stripes
-        else if (u_subtask == 2 ) {
+        else if (u_subtask == 3 ) {
             // Pattern for each type of stripes
             float local_x = mod(v_uv.x * 5.0, 1.0);
             float local_y = mod(v_uv.y * 4.0, 1.0);
@@ -48,7 +48,7 @@ void main()
         }
 
         // 1.d - radial gradient
-        else if (u_subtask == 3) {
+        else if (u_subtask == 4) {
             // Set up grid
             vec2 p = v_uv * 10.0;
             p.x *= aspect; // adapt dimensions
@@ -70,7 +70,7 @@ void main()
         }
 
         // 1.e - grid
-        else if (u_subtask == 4) {
+        else if (u_subtask == 5) {
             vec2 p = v_uv * 10.0;
             p.x *= aspect; // adapt dimensions
             vec2 grid = floor(p);
@@ -80,7 +80,7 @@ void main()
         }
 
         // 1.f - sinusoid
-        else if (u_subtask == 5) {
+        else if (u_subtask == 6) {
             // Sine wave
             float wave = sin(v_uv.x * 6.0) * 0.3 + 0.5;
             // Top gradient
@@ -97,23 +97,23 @@ void main()
     }
 
     // TASK 3
-    else if (u_task == 2) {
+    else if (u_task == 3) {
         vec4 texture_color = texture2D( u_tex, v_uv);
         color = texture_color.rgb;
 
         // 2.a - greyscale
-        if (u_subtask == 0) {
+        if (u_subtask == 1) {
             float gray = dot(color, vec3(0.299, 0.587, 0.114));
             color = vec3(gray);
         }
 
         // 2.b - color inversion
-        else if (u_subtask == 1) {
+        else if (u_subtask == 2) {
             color = 1.0 - color;
         }
 
         // 2.c - yellow
-        else if (u_subtask == 2) {
+        else if (u_subtask == 3) {
             float r = dot(color, vec3(0.45, 0.85, 0.20));
             float g = dot(color, vec3(0.40, 0.80, 0.15));
             float b = dot(color, vec3(0.20, 0.45, 0.10));
@@ -121,13 +121,13 @@ void main()
         }
 
         // 2.d - black and white
-        else if (u_subtask == 3) {
+        else if (u_subtask == 4) {
             float brightness = dot(color, vec3(0.333));
             color = vec3(step(0.5, brightness));
         }
 
         // 2.e - vignette
-        else if (u_subtask == 4) {
+        else if (u_subtask == 5) {
             // Distance 
             float dist = distance(v_uv, vec2(0.5));
             // Darken edges
@@ -135,7 +135,7 @@ void main()
         }
         
         // 2.f - blur (3x3 box blur)
-        else if (u_subtask == 5) {
+        else if (u_subtask == 6) {
             vec2 texelSize = vec2(5) / u_res; 
             vec3 sum = vec3(0.0);
             // Sample 9 points around current pixel
@@ -152,12 +152,12 @@ void main()
             color = sum / 9.0;
         }
     }
-    // TASK 3
-    else if (u_task == 3) {
+    // TASK 4
+    else if (u_task == 4) {
         vec2 uv = v_uv;
 
         // 3.a animated rotation
-        if (u_subtask == 0) {
+        if (u_subtask == 1) {
             // move origin to center (0.5, 0.5)
             vec2 p = uv - 0.5;
             
@@ -177,7 +177,7 @@ void main()
         }
 
         // 3.b pixelization
-        else if (u_subtask == 1) {
+        else if (u_subtask == 2) {
             // size = min size + ((range from -1 to 1 with frequency 0.25) + 1 to make it from 0 to 2) * amplitude/2 (as our range is from 0 to 1)
             float size = 10.0 + (sin(u_time * 0.25) + 1.0) * 50.0;
             vec2 pixelatedUV = floor(v_uv * size) / size;

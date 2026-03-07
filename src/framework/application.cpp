@@ -64,7 +64,7 @@ void Application::Render(){ // LAB 4
     // Clear buffers
     glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if ((!is_lab5) && (u_task != 4)) {
+    if (!is_lab5) {
         if (!shaderQuad) { return; }
         shaderQuad->Enable();
         shaderQuad->SetFloat("u_time", time);
@@ -162,18 +162,18 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
     switch(event.keysym.sym) {
         case SDLK_ESCAPE: exit(0); break; 
         // LAB 4 - task selection
-        case SDLK_1: u_task = 1; u_subtask = 0; break;
-        case SDLK_2: u_task = 2; u_subtask = 0; break;
-        case SDLK_3: u_task = 3; u_subtask = 0; break;
-        case SDLK_4: u_task = 4; u_subtask = 0; break;
+        case SDLK_1: u_task = 1; u_subtask = 1; break;
+        case SDLK_2: u_task = 2; u_subtask = 1; break;
+        case SDLK_3: u_task = 3; u_subtask = 1; break;
+        case SDLK_4: u_task = 4; u_subtask = 1; break;
 
         // LAB 4 - subtask selection
-        case SDLK_a: u_subtask = 0; break;
-        case SDLK_b: u_subtask = 1; break;
-        case SDLK_c: u_subtask = 2; break;
-        case SDLK_d: u_subtask = 3; break;
-        case SDLK_e: u_subtask = 4; break;
-        case SDLK_f: u_subtask = 5; break;
+        case SDLK_a: u_subtask = 1; break;
+        case SDLK_b: u_subtask = 2; break;
+        case SDLK_c: u_subtask = 3; break;
+        case SDLK_d: u_subtask = 4; break;
+        case SDLK_e: u_subtask = 5; break;
+        case SDLK_f: u_subtask = 6; break;
 
         // LAB 4 & 5 - switch lab
         case SDLK_l:
