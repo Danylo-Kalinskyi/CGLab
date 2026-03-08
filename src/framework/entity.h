@@ -2,6 +2,8 @@
 #include "mesh.h"
 #include "image.h"
 #include "camera.h"
+#include "shader.h"
+#include "texture.h"
 
 class Entity {
 public:

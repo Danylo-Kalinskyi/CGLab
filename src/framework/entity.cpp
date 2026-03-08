@@ -125,22 +125,22 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatIma
 
 // LAB 4 - 2.5
 void Entity::Render(Camera* camera) {
-    if (!shader || !mesh) return;
+    if (!rasterShader || !mesh) return;
 
-    shader->Enable();
+    rasterShader->Enable();
 
     // Pass the Model and ViewProjection matrices to the GPU
-    shader->SetMatrix44("u_model", model);
-    shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
+    rasterShader->SetMatrix44("u_model", model);
+    rasterShader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
 
     // Bind the texture to the GPU
-    if (gpu_tex) {
-        gpu_tex->Bind();
-        shader->SetInt("u_texture", 0);
+    if (rasterTex) {
+        rasterTex->Bind();
+        rasterShader->SetInt("u_texture", 0);
     }
 
-    mesh->Render(); // GPU-side render call
-    shader->Disable();
+    mesh->Render();
+    rasterShader->Disable();
 }
 
 // ADDITIONAL FUNCTION

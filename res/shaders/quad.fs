@@ -152,5 +152,38 @@ void main()
             color = sum / 9.0;
         }
     }
+    // TASK 3
+    else if (u_task == 3) {
+        vec2 uv = v_uv;
+
+        // 3.a animated rotation
+        if (u_subtask == 0) {
+            // move origin to center (0.5, 0.5)
+            vec2 p = uv - 0.5;
+            
+            // get rotation angle based on time
+            float angle = u_time;
+            float s = sin(angle);
+            float c = cos(angle);
+            
+            // apply rotation matrix
+            vec2 rotatedP;
+            rotatedP.x = p.x * c - p.y * s;
+            rotatedP.y = p.x * s + p.y * c;
+            
+            // move origin back and sample
+            uv = rotatedP + 0.5;
+            color = texture2D(u_tex, uv).rgb;
+        }
+
+        // 3.b pixelization
+        else if (u_subtask == 1) {
+            // size = min size + ((range from -1 to 1 with frequency 0.25) + 1 to make it from 0 to 2) * amplitude/2 (as our range is from 0 to 1)
+            float size = 10.0 + (sin(u_time * 0.25) + 1.0) * 50.0;
+            vec2 pixelatedUV = floor(v_uv * size) / size;
+            
+            color = texture2D(u_tex, pixelatedUV).rgb;
+        }
+    }
     gl_FragColor = vec4(color, 1.0);
 }
