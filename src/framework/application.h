@@ -53,6 +53,8 @@ public:
         this->window_width = width;
         this->window_height = height;
         this->framebuffer.Resize(width, height);
+        this->camera.SetAspectRatio(width / height);
+        this->camera.UpdateProjectionMatrix();
     }
 
     Vector2 GetWindowSize() {

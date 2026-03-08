@@ -123,6 +123,8 @@ void Application::OnMouseMove(SDL_MouseMotionEvent event) {
 void Application::OnKeyPressed(SDL_KeyboardEvent event)
 {
     switch(event.keysym.sym) {
+        case SDLK_ESCAPE: exit(0); break;
+
         // LAB 4 - task selection
         case SDLK_1: current_task = 1; current_subtask = 0; break;
         case SDLK_2: current_task = 2; current_subtask = 0; break;
