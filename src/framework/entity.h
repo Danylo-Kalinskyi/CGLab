@@ -18,9 +18,13 @@ public:
     Vector3 animAxis;
     float animSpeed;
 
+    // LAB 4 - shader and texture
+    Shader* rasterShader = nullptr;
+    Texture* rasterTex = nullptr;
+
     Entity();
     void Init(Mesh* m);
-    void Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer);
+    void Render(Camera* camera); // LAB 4 - 2.5
     void Update(float dt);
     void RandomAnim();
 

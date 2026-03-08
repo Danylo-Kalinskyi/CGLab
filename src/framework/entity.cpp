@@ -44,6 +44,7 @@ void Entity::Update(float dt) {
 
 }
 
+/*
 void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer) {
     if (!mesh) return;
 
@@ -119,6 +120,27 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatIma
                 framebuffer->DrawTriangleInterpolated(tri, useOcclusion ? z_buffer : nullptr);
         }
     }
+}
+*/
+
+// LAB 4 - 2.5
+void Entity::Render(Camera* camera) {
+    if (!shader || !mesh) return;
+
+    shader->Enable();
+
+    // Pass the Model and ViewProjection matrices to the GPU
+    shader->SetMatrix44("u_model", model);
+    shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
+
+    // Bind the texture to the GPU
+    if (gpu_tex) {
+        gpu_tex->Bind();
+        shader->SetInt("u_texture", 0);
+    }
+
+    mesh->Render(); // GPU-side render call
+    shader->Disable();
 }
 
 // ADDITIONAL FUNCTION
