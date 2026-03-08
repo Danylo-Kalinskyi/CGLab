@@ -41,7 +41,7 @@ void Application::Init(void) {
     // LAB 2 - Position the camera so the mesh is visible
     camera.SetOrthographic(-1,1,1,-1,-1,1);
     camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
-    camera.LookAt(Vector3(0, 1, 2), Vector3(0, 1, 0), Vector3(0, 1, 0));
+    camera.LookAt(Vector3(0, 1, 3), Vector3(0, 1, 0), Vector3(0, 1, 0));
  
 
     // LAB 4 - 2.3 image filters
@@ -160,63 +160,6 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
             is_lab5 = !is_lab5;
             //current_task = 1; current_subtask = 0;
             break;
-
-
-        /*
-        
-        // case SDLK_ESCAPE: exit(0); break;
-        
-        case SDLK_1: 
-            one_entity = true; 
-            // Reset
-            if (!entities.empty()) {
-                entities.resize(1); // remove extras 
-                entities[0].Init(mesh); // reset first entity
-            }
-            break; // draw single entity
-        case SDLK_2: 
-            one_entity = false; 
-            // Reset
-            for (auto& e : entities) e.Init(mesh);
-            while ((int)entities.size() < 3) {   // 3 entities
-                Entity e;
-                e.Init(mesh);
-                entities.push_back(e);
-            }
-            break; // draw multiple animated entities
-        case SDLK_n: current_property = C_NEAR; break; // set current property to camera near
-        case SDLK_f: current_property = C_FAR; break; // set current property to camera far
-        case SDLK_v: current_property = C_FOV; break; // set current property to FOV
-        case SDLK_PLUS: 
-            if (current_property == C_NEAR) camera_near += 0.1;
-            else if (current_property == C_FAR) camera_far += 0.1;
-            else if (current_property == C_FOV) camera_fov += 1.0;
-            break; // increase current property
-        case SDLK_MINUS: 
-            if (current_property == C_NEAR) camera_near -= 0.1;
-            else if (current_property == C_FAR) camera_far -= 0.1;
-            else if (current_property == C_FOV) camera_fov -= 1.0;
-            break; // decrease current property
-        case SDLK_t: // texture
-            for (auto& e : entities) e.useTexture = !e.useTexture;
-            break;
-
-        case SDLK_z: // Toggle Z-buffer
-            for (auto& e : entities) e.useOcclusion = !e.useOcclusion;
-            break;
-
-        case SDLK_c: // Toggle UV interpolation
-            for (auto& e : entities) e.interpolateUVs = !e.interpolateUVs;
-            break;
-
-        case SDLK_w: // Toggle wireframe / filled
-            for (auto& e : entities) {
-                if (e.mode == Entity::eRenderMode::WIREFRAME) { e.mode = Entity::eRenderMode::TRIANGLES_INTERPOLATED; }
-                else { e.mode = Entity::eRenderMode::WIREFRAME; }
-            }
-            break;
-        camera.SetPerspective(camera_fov, window_width / (float)window_height, camera_near, camera_far);
-        */
     }
     
 }

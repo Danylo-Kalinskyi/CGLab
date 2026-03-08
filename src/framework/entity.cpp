@@ -11,121 +11,25 @@ void Entity::Init(Mesh* m, Shader* s, Texture* t) {
     mesh = m;
     shader = s;
     texture = t;
-    position = Vector3(0, 0, 0);
-    rotation = Vector3(0, 0, 0);
+    position = Vector3(0.0, 0.0, 0.0);
+    translation = Vector3(0.0, 0.0, 0);
+    rotation = Vector3(0.0, 0.0, 0.0);
     scale = Vector3(1, 1, 1);
 }
 
 void Entity::Update(float dt) {
-    /*
-    if (animType == ROTATE) {
-        rotation.x += animAxis.x * animSpeed * dt;
-        rotation.y += animAxis.y * animSpeed * dt;
-        rotation.z += animAxis.z * animSpeed * dt;
-    }
-    else if (animType == SCALE) {
-        scale.x += animSpeed * dt;
-        scale.y += animSpeed * dt;
-        scale.z += animSpeed * dt;
-    }
-    else if (animType == TRANSLATE) {
-        position.x += translation.x * dt;
-        position.y += translation.y * dt;
-        position.z += translation.z * dt;
-    }
-    */
-    Matrix44 T, R, S;
+    Matrix44 T, R, S; 
     T.MakeTranslationMatrix(position.x, position.y, position.z);
-    R.MakeRotationMatrix(rotation.x + rotation.y + rotation.z, animAxis);
     S.MakeScaleMatrix(scale.x, scale.y, scale.z);
     model = T * R * S;
 
 }
 
-/*
-void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatImage* z_buffer) {
-    if (!mesh) return;
-
-    const auto& vertices = mesh->GetVertices();
-
-    for (int i = 0; i < vertices.size(); i += 3) {
-        // transform to World Space
-        Vector3 v0 = model * vertices[i];
-        Vector3 v1 = model * vertices[i + 1];
-        Vector3 v2 = model * vertices[i + 2];
-
-        // project vertices to Clip Space (p.x and p.y are NDC, p.z is depth)
-        Vector3 p0 = camera->ProjectVector(v0);
-        Vector3 p1 = camera->ProjectVector(v1);
-        Vector3 p2 = camera->ProjectVector(v2);
-
-        // Simple Clipping (Skip if the whole triangle is behind the camera)
-        if (p0.z < -1 && p1.z < -1 && p2.z < -1) continue;
-
-        // Viewport Transform (NDC to Screen Pixels)
-        // We keep the Z value in the Vector3 for use in the interpolation function
-        Vector3 s0((p0.x * 0.5f + 0.5f) * framebuffer->width, (p0.y * 0.5f + 0.5f) * framebuffer->height, p0.z);
-        Vector3 s1((p1.x * 0.5f + 0.5f) * framebuffer->width, (p1.y * 0.5f + 0.5f) * framebuffer->height, p1.z);
-        Vector3 s2((p2.x * 0.5f + 0.5f) * framebuffer->width, (p2.y * 0.5f + 0.5f) * framebuffer->height, p2.z);
-
-        Color c0 = Color::RED;
-        Color c1 = Color::GREEN;
-        Color c2 = Color::BLUE;
-
-        // We load the mesh' UVs
-        const auto& uvs = mesh->GetUVs();
-        Vector2 uv0 = uvs[i];
-        Vector2 uv1 = uvs[i + 1];
-        Vector2 uv2 = uvs[i + 2];
-
-        switch (mode) {
-
-            case eRenderMode::WIREFRAME:
-                framebuffer->DrawLineDDA(s0.x, s0.y, s1.x, s1.y, c);
-                framebuffer->DrawLineDDA(s1.x, s1.y, s2.x, s2.y, c);
-                framebuffer->DrawLineDDA(s2.x, s2.y, s0.x, s0.y, c);
-                break;
-
-            case eRenderMode::TRIANGLES:
-                framebuffer->DrawTriangle(Vector2(s0.x, s0.y), Vector2(s1.x, s1.y), Vector2(s2.x, s2.y), c, true, c);
-                break;
-
-            case eRenderMode::TRIANGLES_INTERPOLATED:
-                sTriangleInfo tri;
-                tri.p0 = s0; tri.p1 = s1; tri.p2 = s2;
-                tri.uv0 = uv0; tri.uv1 = uv1; tri.uv2 = uv2;
-
-                if (useTexture) {
-                    tri.texture = texture;
-                    tri.c0 = tri.c1 = tri.c2 = Color::WHITE;
-                }
-                else {
-                    tri.texture = nullptr;
-                }
-
-                // color interpolation vs plain color 
-                if (!useTexture) {
-                    if (interpolateUVs) {
-                        tri.c0 = Color::RED;
-                        tri.c1 = Color::GREEN;
-                        tri.c2 = Color::BLUE;
-                    }
-                    else {
-                        tri.c0 = tri.c1 = tri.c2 = this->color;
-                    }
-                }
-
-                framebuffer->DrawTriangleInterpolated(tri, useOcclusion ? z_buffer : nullptr);
-        }
-    }
-}
-*/
-
-// LAB 4 - 2.5
+// LAB 4 - 2.5 new Render function
 void Entity::Render(Camera* camera) {
-    if (!shader || !mesh) return;
+    if (!shader || !mesh) { return; }
 
-    // Pass the Model and ViewProjection matrices to the GPU
+    // pass Model and ViewProjection matrices to GPU
     shader->SetMatrix44("u_model", model);
     shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
 
