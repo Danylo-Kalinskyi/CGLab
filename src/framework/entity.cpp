@@ -7,20 +7,17 @@ Entity::Entity() {
     model.SetIdentity();
 }
 
-void Entity::Init(Mesh* m) {
+void Entity::Init(Mesh* m, Shader* s, Texture* t) {
     mesh = m;
-    color = Color(56 + rand() % 200, 56 + rand() % 200, 56 + rand() % 200); // We avoid dark colors for visibility
-    // Random position inside [-2, 2] for x, y and z
-    position.x = ((float)rand() / RAND_MAX) * 4 - 2;
-    position.y = ((float)rand() / RAND_MAX) * 4 - 2;
-    position.z = ((float)rand() / RAND_MAX) * 4 - 2;
-    RandomAnim();
-    // we load the texture
-    texture = new Image();
-    texture->LoadTGA("textures/lee_color_specular.tga", true);
+    shader = s;
+    texture = t;
+    position = Vector3(0, 0, 0);
+    rotation = Vector3(0, 0, 0);
+    scale = Vector3(1, 1, 1);
 }
 
 void Entity::Update(float dt) {
+    /*
     if (animType == ROTATE) {
         rotation.x += animAxis.x * animSpeed * dt;
         rotation.y += animAxis.y * animSpeed * dt;
@@ -36,6 +33,7 @@ void Entity::Update(float dt) {
         position.y += translation.y * dt;
         position.z += translation.z * dt;
     }
+    */
     Matrix44 T, R, S;
     T.MakeTranslationMatrix(position.x, position.y, position.z);
     R.MakeRotationMatrix(rotation.x + rotation.y + rotation.z, animAxis);
@@ -125,58 +123,18 @@ void Entity::Render(Image* framebuffer, Camera* camera, const Color& c, FloatIma
 
 // LAB 4 - 2.5
 void Entity::Render(Camera* camera) {
-    if (!rasterShader || !mesh) return;
-
-    rasterShader->Enable();
+    if (!shader || !mesh) return;
 
     // Pass the Model and ViewProjection matrices to the GPU
-    rasterShader->SetMatrix44("u_model", model);
-    rasterShader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
+    shader->SetMatrix44("u_model", model);
+    shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
 
     // Bind the texture to the GPU
-    if (rasterTex) {
-        rasterTex->Bind();
-        rasterShader->SetInt("u_texture", 0);
+    if (texture) {
+        texture->Bind();
+        shader->SetInt("u_texture", 0);
     }
 
     mesh->Render();
-    rasterShader->Disable();
-}
-
-// ADDITIONAL FUNCTION
-void Entity::RandomAnim() {
-    // We randomly choose an animation axis
-    int axis = rand() % 3;
-    if (axis == 0) { animAxis = Vector3(1, 0, 0); 
-    }
-    else if (axis == 1) {
-        animAxis = Vector3(0, 1, 0);
-    }
-    else { animAxis = Vector3(0, 0, 1); }
-
-    // Random speed
-    animSpeed = 0.5 + ((float)rand() / RAND_MAX) * 1;
-
-    // We randomly choose an animation type
-    int choice = rand() % 3;
-
-    if (choice == 0) {
-        animType = ROTATE;
-        rotation = Vector3(
-            ((float)rand() / RAND_MAX) * 3,
-            ((float)rand() / RAND_MAX) * 3,
-            ((float)rand() / RAND_MAX) * 3
-        );
-
-    }
-    else if (choice == 1) {
-        animType = SCALE;
-        float s = 1 + ((float)rand() / RAND_MAX) * 0.5;
-        scale = Vector3(s, s, s);
-    }
-    else {
-        animType = TRANSLATE;
-        translation = animAxis * (0.5 + ((float)rand() / RAND_MAX));
-    }
 }
 

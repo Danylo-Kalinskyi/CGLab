@@ -13,7 +13,6 @@ public:
     Vector3 rotation;
     Vector3 translation = (0, 0, 0);
     Vector3 scale = Vector3(1, 1, 1);
-    Color color;
 
     // Randomly assign an animation type
     enum AnimationType { ROTATE, SCALE, TRANSLATE } animType;
@@ -21,17 +20,15 @@ public:
     float animSpeed;
 
     // LAB 4 - shader and texture
-    Shader* rasterShader = nullptr;
-    Texture* rasterTex = nullptr;
+    Shader* shader = nullptr;
+    Texture* texture = nullptr;
 
     Entity();
-    void Init(Mesh* m);
+    void Init(Mesh* m, Shader* s, Texture* t);
     void Render(Camera* camera); // LAB 4 - 2.5
     void Update(float dt);
-    void RandomAnim();
 
     // LAB 3.4
-    Image* texture = nullptr;
     bool use_texture = true;
 
     // LAB 3 - interactivity

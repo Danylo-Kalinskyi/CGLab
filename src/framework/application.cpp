@@ -35,67 +35,58 @@ void Application::Init(void) {
     // LAB 4 - create quad mesh and load shaders
     mesh = new Mesh();
     mesh->CreateQuad();
-    shader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
+    quadShader = Shader::Get("shaders/quad.vs", "shaders/quad.fs");
 
-    /*
+    
     // LAB 2 - Position the camera so the mesh is visible
     camera.SetOrthographic(-1,1,1,-1,-1,1);
     camera.SetPerspective(60, window_width / (float)window_height, 0.1, 100);
-    camera.LookAt(Vector3(0, 1, 5), Vector3(0, 1, 0), Vector3(0, 1, 0));
+    camera.LookAt(Vector3(0, 1, 2), Vector3(0, 1, 0), Vector3(0, 1, 0));
+ 
 
-    // LAB 2 - Initiate mesh and 3 entities
-    mesh = new Mesh();
-    mesh->LoadOBJ("meshes/lee.obj");
-
-    for (int i = 0; i < 3; ++i){
-        Entity e;
-        e.Init(mesh);
-        entities.push_back(e);
-    }    
-    */
-
-    // Lab 4 - 2.3 image filters
+    // LAB 4 - 2.3 image filters
     fruitsImage = Texture::Get("images/fruits.png");
 
     // LAB 4 - 2.5 shader, mesh and GPU texture
-    Shader* rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
-    Mesh* meshLee = new Mesh();
+    rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+    meshLee = new Mesh();
     meshLee->LoadOBJ("meshes/lee.obj");
-    Texture* texLee = Texture::Get("textures/lee_color_specular.tga");
+    texLee = Texture::Get("textures/lee_color_specular.tga");
 
-    // Initialize 3D Entities
-    for (int i = 0; i < 3; ++i) {
-        Entity e;
-        e.Init(meshLee);
-        e.rasterShader = rasterShader; // Assign the 3D shader
-        e.rasterTex = texLee;      // Assign the GPU texture
-        entities.push_back(e);
-    }
+    // LAB 4 - 2.4 Initialize Entity
+    Entity e;
+    e.Init(meshLee, rasterShader, texLee);
+    entities.push_back(e);
 
 }
 
 void Application::Render(){
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (current_task == 4) {
-        glEnable(GL_DEPTH_TEST); // Enable occlusions for 3D
-        for (auto& e : entities) {
-            e.Render(&camera); // Call the new GPU render method
+    if (!is_lab5) { // LAB 4
+        if (current_task == 4) { // Task 4
+            glEnable(GL_DEPTH_TEST); // Enable occlusions for 3D
+            glDepthFunc(GL_LESS);
+            rasterShader->Enable();
+            for (auto& e : entities) {
+                e.Render(&camera); 
+            }
+            rasterShader->Disable();
         }
-    }
-    else {
-        glDisable(GL_DEPTH_TEST);
-        if (!shader) { return; }
-        shader->Enable();
-        shader->SetFloat("u_time", time);
-        shader->SetVector2("u_res", Vector2(window_width, window_height));
-        // interactivity variables
-        shader->SetInt("u_task", current_task);
-        shader->SetInt("u_subtask", current_subtask);
-        fruitsImage->Bind();
-        shader->SetInt("u_tex", 0);
-        mesh->Render();
-        shader->Disable();
+        else { // Tasks 1, 2 and 3
+            glDisable(GL_DEPTH_TEST);
+            if (!quadShader) { return; }
+            quadShader->Enable();
+            quadShader->SetFloat("u_time", time);
+            quadShader->SetVector2("u_res", Vector2(window_width, window_height));
+            // interactivity variables
+            quadShader->SetInt("u_task", current_task);
+            quadShader->SetInt("u_subtask", current_subtask);
+            fruitsImage->Bind();
+            quadShader->SetInt("u_tex", 0);
+            mesh->Render();
+            quadShader->Disable();
+        }
     }
 }
 
