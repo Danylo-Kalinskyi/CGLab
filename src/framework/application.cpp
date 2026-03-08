@@ -57,27 +57,52 @@ void Application::Init(void) {
     // Lab 4 - 2.3 image filters
     fruitsImage = Texture::Get("images/fruits.png");
 
+    // LAB 4 - 2.5 shader, mesh and GPU texture
+    Shader* rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+    Mesh* meshLee = new Mesh();
+    meshLee->LoadOBJ("meshes/lee.obj");
+    Texture* texLee = Texture::Get("textures/lee_color_specular.tga");
+
+    // Initialize 3D Entities
+    for (int i = 0; i < 3; ++i) {
+        Entity e;
+        e.Init(meshLee);
+        e.rasterShader = rasterShader; // Assign the 3D shader
+        e.rasterTex = texLee;      // Assign the GPU texture
+        entities.push_back(e);
+    }
+
 }
 
 void Application::Render(){
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    if (!shader) { return; }
-    shader->Enable();
-    shader->SetFloat("u_time", time);
-    shader->SetVector2("u_res", Vector2(window_width, window_height));
-    // interactivity variables
-    shader->SetInt("u_task", current_task);
-    shader->SetInt("u_subtask", current_subtask);
-    fruitsImage->Bind(); 
-    shader->SetInt("u_tex", 0);
-    mesh->Render();
-    shader->Disable();
+    if (current_task == 4) {
+        glEnable(GL_DEPTH_TEST); // Enable occlusions for 3D
+        for (auto& e : entities) {
+            e.Render(&camera); // Call the new GPU render method
+        }
+    }
+    else {
+        glDisable(GL_DEPTH_TEST);
+        if (!shader) { return; }
+        shader->Enable();
+        shader->SetFloat("u_time", time);
+        shader->SetVector2("u_res", Vector2(window_width, window_height));
+        // interactivity variables
+        shader->SetInt("u_task", current_task);
+        shader->SetInt("u_subtask", current_subtask);
+        fruitsImage->Bind();
+        shader->SetInt("u_tex", 0);
+        mesh->Render();
+        shader->Disable();
+    }
 }
 
 void Application::Update(float seconds_elapsed){
     time += seconds_elapsed;
-    for (auto& e : entities) {e.Update(seconds_elapsed);} // LAB 2
+    camera.UpdateViewMatrix();
+    camera.UpdateProjectionMatrix();
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event){
