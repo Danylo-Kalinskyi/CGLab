@@ -141,6 +141,9 @@ void Application::Update(float seconds_elapsed){
     time += seconds_elapsed;
     camera.UpdateViewMatrix();
     camera.UpdateProjectionMatrix();
+    for (auto& e : entities) {
+        e.Update(seconds_elapsed);
+    }
 }
 
 void Application::OnMouseButtonDown(SDL_MouseButtonEvent event){
@@ -242,7 +245,10 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
         // LAB 4 & 5 - switch lab
         case SDLK_l:
             is_lab5 = !is_lab5;
-            //current_task = 1; current_subtask = 0;
+            if (!is_lab5) {
+                current_task = 1; 
+                current_subtask = 0;
+            }
             break;
     }
     
