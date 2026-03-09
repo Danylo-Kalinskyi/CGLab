@@ -10,6 +10,7 @@
 #include "particle.h"
 #include "entity.h"
 #include "shader.h"
+#include "material.h"
 
 class Application
 {
@@ -96,8 +97,25 @@ public:
     Mesh* meshLee = nullptr;
     Texture* texLee = nullptr;
 
+    // LAB 5 - shaders
+    Shader* gouraudShader = nullptr;
+    Shader* phongShader = nullptr;
+
+    // LAB 5 - materials and lights
+    sUniformData uniformData;
+    Vector3 ambient_light = Vector3(0.02f, 0.02f, 0.02f);
+    std::vector<sLight> lights;
+
     // LAB 4 & 5 - interactivity
     int current_task = 1;    // For "1" to "4"
     int current_subtask = 0; // For "a" to "f"
     bool is_lab5 = false;    // For "L"
+
+    // LAB 5 - shading and textures
+    enum ShadingMode { GOURAUD, PHONG };
+    ShadingMode shading_mode = PHONG;
+    bool use_color_texture = true;
+    bool use_specular_texture = true;
+    bool use_normal_texture = true;
+    int num_lights = 1;
 };

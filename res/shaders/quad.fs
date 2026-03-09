@@ -50,12 +50,12 @@ void main()
         // 1.d - radial gradient
         else if (u_subtask == 3) {
             // Set up grid
-            vec2 p = v_uv * 10;
+            vec2 p = v_uv * 10.0;
             p.x *= aspect; // adapt dimensions
             vec2 grid = floor(p); // We use floor to find which square we are in
             // Normalize coordinates 
             float color_x = grid.x / (10.0 * aspect);
-            float color_y = grid.y / 10;
+            float color_y = grid.y / 10.0;
             // Define corner colors
             vec3 topLeft = vec3(0.0, 1.0, 0.0);
             vec3 topRight = vec3(1.0, 1.0, 0.0);
@@ -71,7 +71,7 @@ void main()
 
         // 1.e - grid
         else if (u_subtask == 4) {
-            vec2 p = v_uv * 10;
+            vec2 p = v_uv * 10.0;
             p.x *= aspect; // adapt dimensions
             vec2 grid = floor(p);
             float check = mod(grid.x + grid.y, 2.0);
@@ -82,7 +82,7 @@ void main()
         // 1.f - sinusoid
         else if (u_subtask == 5) {
             // Sine wave
-            float wave = sin(v_uv.x * 6) * 0.3 + 0.5;
+            float wave = sin(v_uv.x * 6.0) * 0.3 + 0.5;
             // Top gradient
             float grad_top = 1.0 - v_uv.y;
             vec3 colorTop = vec3(0.0, grad_top, 0.0);
@@ -136,7 +136,7 @@ void main()
         
         // 2.f - blur (3x3 box blur)
         else if (u_subtask == 5) {
-            vec2 texelSize = vec2(5) / u_res; 
+            vec2 texelSize = vec2(5.0) / u_res; 
             vec3 sum = vec3(0.0);
             // Sample 9 points around current pixel
             sum += texture2D(u_tex, v_uv + vec2(-1.0,  1.0) * texelSize).rgb;

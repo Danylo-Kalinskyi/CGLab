@@ -7,10 +7,9 @@ Entity::Entity() {
     model.SetIdentity();
 }
 
-void Entity::Init(Mesh* m, Shader* s, Texture* t) {
+void Entity::Init(Mesh* m, Material* mat) {
     mesh = m;
-    shader = s;
-    texture = t;
+    material = mat;
     position = Vector3(0.0, 0.0, 0.0);
     translation = Vector3(0.0, 0.0, 0);
     rotation = Vector3(0.0, 0.0, 0.0);
@@ -25,20 +24,36 @@ void Entity::Update(float dt) {
 
 }
 
-// LAB 4 - 2.5 new Render function
-void Entity::Render(Camera* camera) {
-    if (!shader || !mesh) { return; }
+// LAB 5 - new Render function
+void Entity::Render(sUniformData& uniformData) {
+    if (!material || !mesh) { return; }
 
-    // pass Model and ViewProjection matrices to GPU
-    shader->SetMatrix44("u_model", model);
-    shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
+    // Update model matrix
+    uniformData.model = model;
 
-    // Bind the texture to the GPU
-    if (texture) {
-        texture->Bind();
-        shader->SetInt("u_texture", 0);
-    }
+    // Enable material and upload uniforms
+    material->Enable(uniformData);
 
     mesh->Render();
+
+    // Note: Disable is called after rendering all lights in multipass
+}
+
+// LAB 4 - compatibility Render function
+void Entity::Render(Camera* camera) {
+    if (!material || !mesh) { return; }
+
+    // For lab4, assume shader is already enabled
+    if (material->shader) {
+        material->shader->SetMatrix44("u_model", model);
+        material->shader->SetMatrix44("u_viewprojection", camera->viewprojection_matrix);
+
+        if (material->color_texture) {
+            material->color_texture->Bind();
+            material->shader->SetInt("u_texture", 0);
+        }
+
+        mesh->Render();
+    }
 }
 

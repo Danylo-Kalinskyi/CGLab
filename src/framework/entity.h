@@ -2,8 +2,7 @@
 #include "mesh.h"
 #include "image.h"
 #include "camera.h"
-#include "shader.h"
-#include "texture.h"
+#include "material.h"
 
 class Entity {
 public:
@@ -14,14 +13,13 @@ public:
     Vector3 translation;
     Vector3 scale;
 
-
-    // LAB 4 - shader and texture
-    Shader* shader = nullptr;
-    Texture* texture = nullptr;
+    // LAB 5 - material
+    Material* material = nullptr;
 
     Entity();
-    void Init(Mesh* m, Shader* s, Texture* t);
-    void Render(Camera* camera); // LAB 4 - 2.5
+    void Init(Mesh* m, Material* mat);
+    void Render(sUniformData& uniformData);
+    void Render(Camera* camera); // LAB 4 compatibility
     void Update(float dt);
 
     // LAB 3.4

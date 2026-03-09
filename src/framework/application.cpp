@@ -49,14 +49,31 @@ void Application::Init(void) {
 
     // LAB 4 - 2.5 shader, mesh and GPU texture
     rasterShader = Shader::Get("shaders/raster.vs", "shaders/raster.fs");
+    gouraudShader = Shader::Get("shaders/gouraud.vs", "shaders/gouraud.fs");
+    phongShader = Shader::Get("shaders/phong.vs", "shaders/phong.fs");
     meshLee = new Mesh();
     meshLee->LoadOBJ("meshes/lee.obj");
     texLee = Texture::Get("textures/lee_color_specular.tga");
 
+    // LAB 5 - create material
+    Material* material = new Material();
+    material->shader = rasterShader; // default for lab4
+    material->color_texture = texLee;
+    material->normal_texture = Texture::Get("textures/lee_normal.tga");
+
     // LAB 4 - 2.4 Initialize Entity
     Entity e;
-    e.Init(meshLee, rasterShader, texLee);
+    e.Init(meshLee, material);
     entities.push_back(e);
+
+    // LAB 5 - initialize uniform data
+    uniformData.ambient_light = ambient_light;
+    // Add a default light
+    sLight light;
+    light.position = Vector3(0, 5, 5);
+    light.color = Vector3(0.6, 0.6, 0.6);
+    lights.push_back(light);
+    uniformData.lights = lights;
 
 }
 
@@ -86,6 +103,36 @@ void Application::Render(){
             quadShader->SetInt("u_tex", 0);
             mesh->Render();
             quadShader->Disable();
+        }
+    } else { // LAB 5
+        glEnable(GL_DEPTH_TEST);
+        glDepthFunc(GL_LESS);
+        glEnable(GL_CULL_FACE);
+        glCullFace(GL_BACK);
+
+        // Update uniform data
+        uniformData.viewprojection = camera.viewprojection_matrix;
+        uniformData.ambient_light = ambient_light;
+        uniformData.use_color_texture = use_color_texture;
+        uniformData.use_specular_texture = use_specular_texture;
+        uniformData.use_normal_texture = use_normal_texture;
+        // Keep lights in uniform data in sync with current application lights
+        uniformData.lights = lights;
+
+        // Set shader based on mode
+        Shader* currentShader = (shading_mode == GOURAUD) ? gouraudShader : phongShader;
+        for (auto& e : entities) {
+            e.material->shader = currentShader;
+        }
+
+        // Single pass rendering
+        // Clamp number of lights to what shaders support and what we have
+        int max_lights = 2; // matches u_light_positions[2], u_light_colors[2]
+        int available_lights = static_cast<int>(lights.size());
+        uniformData.num_lights = std::min(std::min(num_lights, available_lights), max_lights);
+        for (auto& e : entities) {
+            e.Render(uniformData);
+            e.material->Disable();
         }
     }
 }
@@ -142,10 +189,38 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
         case SDLK_ESCAPE: exit(0); break;
 
         // LAB 4 - task selection
-        case SDLK_1: current_task = 1; current_subtask = 0; break;
-        case SDLK_2: current_task = 2; current_subtask = 0; break;
-        case SDLK_3: current_task = 3; current_subtask = 0; break;
-        case SDLK_4: current_task = 4; current_subtask = 0; break;
+        case SDLK_1: 
+            if (!is_lab5) {
+                current_task = 1; current_subtask = 0; 
+            } else {
+                num_lights = 1;
+                lights.resize(1);
+                lights[0].position = Vector3(0, 5, 5);
+                lights[0].color = Vector3(0.6, 0.6, 0.6);
+            }
+            break;
+        case SDLK_2: 
+            if (!is_lab5) {
+                current_task = 2; current_subtask = 0; 
+            } else {
+                num_lights = 2;
+                lights.resize(2);
+                lights[0].position = Vector3(0, 5, 5);
+                lights[0].color = Vector3(0.6, 0.6, 0.6);
+                lights[1].position = Vector3(10, 5, 0);
+                lights[1].color = Vector3(0.5, 0.2, 0.2); // Reddish
+            }
+            break;
+        case SDLK_3: 
+            if (!is_lab5) {
+                current_task = 3; current_subtask = 0; 
+            }
+            break;
+        case SDLK_4: 
+            if (!is_lab5) {
+                current_task = 4; current_subtask = 0; 
+            }
+            break;
 
         // LAB 4 - subtask selection
         case SDLK_a: current_subtask = 0; break;
@@ -154,6 +229,15 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
         case SDLK_d: current_subtask = 3; break;
         case SDLK_e: current_subtask = 4; break;
         case SDLK_f: current_subtask = 5; break;
+
+        // LAB 5 - shading
+        case SDLK_g: if (is_lab5) shading_mode = GOURAUD; break;
+        case SDLK_p: if (is_lab5) shading_mode = PHONG; break;
+
+        // LAB 5 - texturesl
+        case SDLK_t: if (is_lab5) use_color_texture = !use_color_texture; break;
+        case SDLK_s: if (is_lab5) use_specular_texture = !use_specular_texture; break;
+        case SDLK_n: if (is_lab5) use_normal_texture = !use_normal_texture; break;
 
         // LAB 4 & 5 - switch lab
         case SDLK_l:
@@ -177,6 +261,8 @@ void Application::OnWheel(SDL_MouseWheelEvent event) {
 
     camera.eye = camera.center - dir * dist;
     camera.UpdateViewMatrix();
+
+    this->distance = dist; // Update distance for orbiting
 }
 
 void Application::OnFileChanged(const char* filename) { Shader::ReloadSingleShader(filename); }
