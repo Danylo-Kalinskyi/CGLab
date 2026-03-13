@@ -78,14 +78,18 @@ void Application::Init(void) {
 }
 
 void Application::Render(){
+
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     if (!is_lab5) { // LAB 4
         if (current_task == 4) { // Task 4
-            glEnable(GL_DEPTH_TEST); // Enable occlusions for 3D
-            glDepthFunc(GL_LESS);
             rasterShader->Enable();
             for (auto& e : entities) {
+                e.material->shader = rasterShader;
                 e.Render(&camera); 
             }
             rasterShader->Disable();
@@ -93,6 +97,7 @@ void Application::Render(){
         else { // Tasks 1, 2 and 3
             glDisable(GL_DEPTH_TEST);
             if (!quadShader) { return; }
+
             quadShader->Enable();
             quadShader->SetFloat("u_time", time);
             quadShader->SetVector2("u_res", Vector2(window_width, window_height));
@@ -105,25 +110,17 @@ void Application::Render(){
             quadShader->Disable();
         }
     } else { // LAB 5
-        glEnable(GL_DEPTH_TEST);
-        glDepthFunc(GL_LESS);
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
-
         // Update uniform data
         uniformData.viewprojection = camera.viewprojection_matrix;
         uniformData.ambient_light = ambient_light;
         uniformData.use_color_texture = use_color_texture;
         uniformData.use_specular_texture = use_specular_texture;
         uniformData.use_normal_texture = use_normal_texture;
-        // Keep lights in uniform data in sync with current application lights
         uniformData.lights = lights;
 
         // Set shader based on mode
         Shader* currentShader = (shading_mode == GOURAUD) ? gouraudShader : phongShader;
-        for (auto& e : entities) {
-            e.material->shader = currentShader;
-        }
+        currentShader->Enable();
 
         // Single pass rendering
         // Clamp number of lights to what shaders support and what we have
@@ -131,9 +128,10 @@ void Application::Render(){
         int available_lights = static_cast<int>(lights.size());
         uniformData.num_lights = std::min(std::min(num_lights, available_lights), max_lights);
         for (auto& e : entities) {
+            e.material->shader = currentShader;
             e.Render(uniformData);
-            e.material->Disable();
         }
+        currentShader->Disable();
     }
 }
 
@@ -246,8 +244,22 @@ void Application::OnKeyPressed(SDL_KeyboardEvent event)
         case SDLK_l:
             is_lab5 = !is_lab5;
             if (!is_lab5) {
-                current_task = 1; 
+                current_task = 1;
                 current_subtask = 0;
+            }
+            else {
+                // Reset the lab 5 state
+                shading_mode = PHONG;
+                num_lights = 1;
+                lights.clear();
+                sLight l;
+                l.position = Vector3(0, 5, 5);
+                l.color = Vector3(0.6, 0.6, 0.6);
+                lights.push_back(l);
+
+                use_color_texture = true;
+                use_specular_texture = true;
+                use_normal_texture = true;
             }
             break;
     }
